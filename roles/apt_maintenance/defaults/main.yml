@@ -1,0 +1,19 @@
+---
+# Periodic APT behaviour.
+#
+# The baseline refreshes the package index but never installs upgrades by
+# itself: applying upgrades is an operator decision, and an unattended upgrade
+# can restart services or require a reboot at an unpredictable moment. The
+# review packages below exist so that the operator can see what is pending.
+baseline_apt_periodic_conf: /etc/apt/apt.conf.d/20auto-upgrades
+baseline_apt_periodic_update_package_lists: 1
+baseline_apt_periodic_download_upgradeable: 0
+baseline_apt_periodic_unattended_upgrade: 0
+baseline_apt_periodic_autoclean_interval: 7
+
+# Tools that report what an upgrade would do before it is applied.
+baseline_apt_review_packages:
+  - apt-listchanges
+  - apt-listbugs
+  - debian-security-support
+  - needrestart

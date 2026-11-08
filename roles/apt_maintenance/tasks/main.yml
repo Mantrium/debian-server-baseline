@@ -1,0 +1,16 @@
+---
+# Configure periodic APT maintenance and install the upgrade review tools.
+
+- name: Configure periodic APT maintenance
+  ansible.builtin.template:
+    src: 20auto-upgrades.j2
+    dest: "{{ baseline_apt_periodic_conf }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install the package review tools
+  ansible.builtin.apt:
+    name: "{{ baseline_apt_review_packages }}"
+    state: present
+    cache_valid_time: 3600

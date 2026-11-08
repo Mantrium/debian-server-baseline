@@ -1,0 +1,12 @@
+---
+# How far to take the upgrade.
+#
+# `safe` runs `apt-get upgrade`: it never removes a package and never installs
+# a new one to satisfy a dependency. `full` runs `apt-get dist-upgrade`, which
+# also applies upgrades that need new or removed packages.
+baseline_apt_upgrade_mode: safe
+
+# Remove packages that are no longer required, and clear the downloaded
+# package cache, after the upgrade.
+baseline_apt_upgrade_autoremove: false
+baseline_apt_upgrade_autoclean: false

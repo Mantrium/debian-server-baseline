@@ -1,0 +1,13 @@
+# Managed by infra-server-baseline (role: apt_sources). Do not edit manually.
+
+Types: deb
+URIs: {{ baseline_apt_debian_uri }}
+Suites: {{ baseline_apt_debian_suite }} {{ baseline_apt_debian_updates_suite }}
+Components: {{ baseline_apt_debian_components | join(' ') }}
+Signed-By: {{ baseline_apt_keyring }}
+
+Types: deb
+URIs: {{ baseline_apt_debian_security_uri }}
+Suites: {{ baseline_apt_debian_security_suite }}
+Components: {{ baseline_apt_debian_components | join(' ') }}
+Signed-By: {{ baseline_apt_keyring }}

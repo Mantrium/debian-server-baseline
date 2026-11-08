@@ -1,0 +1,16 @@
+---
+# Bring the server up to date before any other role changes it.
+#
+# This role runs first so that every later role configures a patched system,
+# and so that a package the baseline installs is not immediately superseded by
+# one that was already pending.
+
+- name: Update the APT package index
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Apply pending package upgrades
+  ansible.builtin.apt:
+    upgrade: "{{ baseline_apt_upgrade_mode }}"
+    autoremove: "{{ baseline_apt_upgrade_autoremove }}"
+    autoclean: "{{ baseline_apt_upgrade_autoclean }}"

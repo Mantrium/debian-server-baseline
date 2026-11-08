@@ -1,0 +1,96 @@
+---
+# Point APT at the intended Debian 13 repositories.
+#
+# The Debian cloud image ships a mirrorlist indirection
+# (mirror+file:///etc/apt/mirrors/...). This role replaces it with explicit
+# URIs so that the repositories a server uses are visible in one file.
+
+- name: Check whether the Debian archive signing key is present
+  ansible.builtin.stat:
+    path: "{{ baseline_apt_keyring }}"
+  register: baseline_apt_keyring_stat
+
+- name: Assert the Debian archive signing key is present
+  ansible.builtin.assert:
+    that:
+      - baseline_apt_keyring_stat.stat.exists
+    fail_msg: >-
+      Archive signing key {{ baseline_apt_keyring }} is missing; install
+      debian-archive-keyring.
+
+- name: Configure the Debian repositories
+  ansible.builtin.template:
+    src: debian.sources.j2
+    dest: "{{ baseline_apt_sources_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Remove superseded repository files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ baseline_apt_superseded_sources_files }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Check whether the legacy sources file exists
+  ansible.builtin.stat:
+    path: "{{ baseline_apt_legacy_sources_file }}"
+  register: baseline_apt_legacy_stat
+
+- name: Read the legacy sources file
+  ansible.builtin.slurp:
+    src: "{{ baseline_apt_legacy_sources_file }}"
+  when: baseline_apt_legacy_stat.stat.exists
+  register: baseline_apt_legacy_slurp
+
+- name: Collect the active lines of the legacy sources file
+  ansible.builtin.set_fact:
+    baseline_apt_legacy_active_lines: >-
+      {{ (baseline_apt_legacy_slurp.content | b64decode).split('\n')
+         | map('trim') | reject('match', '^#') | reject('equalto', '') | list }}
+  when: baseline_apt_legacy_stat.stat.exists
+
+- name: Assert the legacy sources file only references Debian repositories
+  ansible.builtin.assert:
+    that:
+      - baseline_apt_legacy_active_lines | reject('search', 'debian\.org') | list | length == 0
+    fail_msg: >-
+      {{ baseline_apt_legacy_sources_file }} contains non-Debian repository
+      entries; migrate them to /etc/apt/sources.list.d/ before applying this
+      baseline.
+  when: baseline_apt_legacy_stat.stat.exists
+
+- name: Point the legacy sources file at the managed file
+  ansible.builtin.copy:
+    content: |
+      # Managed by infra-server-baseline: Debian sources are defined in
+      # /etc/apt/sources.list.d/debian.sources
+    dest: "{{ baseline_apt_legacy_sources_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: baseline_apt_legacy_active_lines | default([]) | length > 0
+
+- name: Refresh the APT package index
+  ansible.builtin.apt:
+    update_cache: true
+  register: baseline_apt_update
+  changed_when: false
+
+- name: Read the effective APT policy
+  ansible.builtin.command:
+    cmd: apt-cache policy
+  register: baseline_apt_policy
+  changed_when: false
+
+- name: Assert the expected Debian 13 suites are available
+  ansible.builtin.assert:
+    that:
+      - baseline_apt_policy.stdout is search('\\b' ~ baseline_apt_debian_suite ~ '/')
+      - baseline_apt_policy.stdout is search('\\b' ~ baseline_apt_debian_updates_suite ~ '/')
+      - baseline_apt_policy.stdout is search('\\b' ~ baseline_apt_debian_security_suite ~ '/')
+    fail_msg: >-
+      Expected Debian 13 suites are not present after configuring
+      {{ baseline_apt_sources_file }}.

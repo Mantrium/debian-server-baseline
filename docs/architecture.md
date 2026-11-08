@@ -60,9 +60,10 @@ Each role owns one concern and one set of files.
 | Role | Owns | Changes the target |
 |---|---|---|
 | `preflight` | User configuration validation | No |
+| `apt_upgrade` | Pending package upgrades | Yes |
 | `os_identity` | Hostname, `/etc/hosts`, timezone, locale | Yes |
 | `apt_sources` | `/etc/apt/sources.list.d/debian.sources` | Yes |
-| `apt_maintenance` | `/etc/apt/apt.conf.d/20auto-upgrades` | Yes |
+| `apt_maintenance` | `/etc/apt/apt.conf.d/20auto-upgrades`, upgrade review tools | Yes |
 | `base_packages` | The baseline package set | Yes |
 | `users` | The administrative user and its `authorized_keys` | Yes |
 | `ssh` | `/etc/ssh/sshd_config.d/00-server-baseline.conf` | Yes |
@@ -97,18 +98,24 @@ work on a machine that has no Python yet. It installs `python3` and
 `baseline.yml` applies roles in this order, and the order is load-bearing:
 
 1. `preflight` — validate the configuration.
-2. `os_identity` — hostname, timezone, locale. Installs `locales` and `tzdata`
+2. `apt_upgrade` — refresh the package index and apply pending upgrades, so
+   that every later role configures a patched system.
+3. `os_identity` — hostname, timezone, locale. Installs `locales` and `tzdata`
    itself because it runs before `base_packages`.
-3. `apt_sources` — point APT at the intended repositories.
-4. `apt_maintenance` — unattended upgrades and periodic maintenance.
-5. `base_packages` — install the baseline package set.
-6. `users` — create the administrative user and install the public key.
-7. `ssh` — harden the SSH daemon.
-8. `nftables` — firewall.
-9. `journald` — persistent logging.
-10. `logrotate` — rotate the baseline reports.
-11. `service_audit`, `kernel_status`, `storage_checks` — write reports.
-12. `verification` — assert the result.
+4. `apt_sources` — point APT at the intended repositories.
+5. `apt_maintenance` — periodic APT maintenance and the upgrade review tools.
+6. `base_packages` — install the baseline package set.
+7. `users` — create the administrative user and install the public key.
+8. `ssh` — harden the SSH daemon.
+9. `nftables` — firewall.
+10. `journald` — persistent logging.
+11. `logrotate` — rotate the baseline reports.
+12. `service_audit`, `kernel_status`, `storage_checks` — write reports.
+13. `verification` — assert the result.
+
+`preflight` runs before `apt_upgrade` because it only reads the controller: a
+missing or malformed `config/user.yml` should stop the run before the target is
+touched at all.
 
 `users` runs before `ssh` so that the administrative account and its key exist
 before the daemon is hardened. `ssh` runs before `nftables` so that a firewall

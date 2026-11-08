@@ -1,0 +1,23 @@
+---
+# Debian 13 (Trixie) repositories.
+baseline_apt_debian_uri: https://deb.debian.org/debian
+baseline_apt_debian_security_uri: https://security.debian.org/debian-security
+baseline_apt_debian_suite: trixie
+baseline_apt_debian_updates_suite: trixie-updates
+baseline_apt_debian_security_suite: trixie-security
+baseline_apt_debian_components:
+  - main
+  - non-free-firmware
+
+# The archive signing key shipped by debian-archive-keyring.
+baseline_apt_keyring: /usr/share/keyrings/debian-archive-keyring.pgp
+
+# The single file this role owns.
+baseline_apt_sources_file: /etc/apt/sources.list.d/debian.sources
+
+# Files that duplicate or supersede the managed file and must not remain.
+baseline_apt_superseded_sources_files:
+  - /etc/apt/sources.list.d/debian-security.sources
+
+# The legacy one-line-per-repository file, kept only as a pointer.
+baseline_apt_legacy_sources_file: /etc/apt/sources.list
