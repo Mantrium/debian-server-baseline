@@ -1,0 +1,21 @@
+---
+baseline_verification_required_packages:
+  - sudo
+  - openssh-server
+  - nftables
+  - logrotate
+  - needrestart
+
+# Names the checks use. The owning role's default is used when that role is
+# part of the play; the fallback keeps verify.yml, which runs only preflight
+# and verification, self-contained.
+baseline_verification_report_dir: "{{ baseline_report_dir | default('/var/log/server-baseline') }}"
+baseline_verification_firewall_table: "{{ baseline_firewall_table | default('baseline_filter') }}"
+baseline_verification_logrotate_timer: "{{ baseline_logrotate_timer | default('logrotate.timer') }}"
+
+# Reports that baseline.yml itself produces. maintenance-report.txt and
+# security-audit.txt are produced on demand by their own playbooks.
+baseline_verification_reports:
+  - service-audit.txt
+  - kernel-status.txt
+  - storage.txt

@@ -1,0 +1,12 @@
+---
+# Assert that the baseline is in place.
+#
+# This playbook changes nothing: it only reads the target.
+
+- name: Verify the Debian 13 server baseline
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - preflight
+    - verification

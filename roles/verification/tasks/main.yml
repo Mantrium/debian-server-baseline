@@ -1,0 +1,232 @@
+---
+# Assert that the baseline is in place.
+#
+# This role changes nothing: it only reads the target and fails when a check
+# does not hold.
+
+- name: Assert the target is Debian 13
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == 'Debian'
+      - ansible_facts.distribution_major_version == '13'
+    fail_msg: >-
+      Expected Debian 13, found {{ ansible_facts.distribution }}
+      {{ ansible_facts.distribution_version }}.
+    success_msg: "Operating system: Debian {{ ansible_facts.distribution_major_version }}"
+
+- name: Read the configured hostname
+  ansible.builtin.command:
+    cmd: cat /etc/hostname
+  register: baseline_verification_hostname
+  changed_when: false
+
+- name: Assert the hostname is configured
+  ansible.builtin.assert:
+    that:
+      - baseline_verification_hostname.stdout | trim == server_hostname
+    fail_msg: >-
+      /etc/hostname is {{ baseline_verification_hostname.stdout | trim }},
+      expected {{ server_hostname }}.
+    success_msg: "Hostname: {{ server_hostname }}"
+
+- name: Read the configured timezone
+  ansible.builtin.command:
+    cmd: timedatectl show --property=Timezone --value
+  register: baseline_verification_timezone
+  changed_when: false
+
+- name: Assert the timezone is configured
+  ansible.builtin.assert:
+    that:
+      - baseline_verification_timezone.stdout | trim == server_timezone
+    fail_msg: >-
+      Timezone is {{ baseline_verification_timezone.stdout | trim }}, expected
+      {{ server_timezone }}.
+    success_msg: "Timezone: {{ server_timezone }}"
+
+- name: Read the system locale
+  ansible.builtin.command:
+    cmd: grep -E ^LANG= /etc/default/locale
+  register: baseline_verification_locale
+  changed_when: false
+  failed_when: false
+
+- name: Assert the locale is configured
+  ansible.builtin.assert:
+    that:
+      - "'LANG=en_US.UTF-8' in baseline_verification_locale.stdout"
+    fail_msg: "LANG is not en_US.UTF-8 in /etc/default/locale."
+    success_msg: "Locale: en_US.UTF-8"
+
+- name: Read the administrative user
+  ansible.builtin.command:
+    cmd: getent passwd {{ admin_username }}
+  register: baseline_verification_admin
+  changed_when: false
+  failed_when: false
+
+- name: Read the administrative user's groups
+  ansible.builtin.command:
+    cmd: id -nG {{ admin_username }}
+  register: baseline_verification_admin_groups
+  changed_when: false
+  failed_when: false
+
+- name: Read the administrative user's authorized_keys
+  ansible.builtin.stat:
+    path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+  register: baseline_verification_authorized_keys
+
+- name: Read the installed SSH keys
+  ansible.builtin.command:
+    cmd: cat /home/{{ admin_username }}/.ssh/authorized_keys
+  register: baseline_verification_ssh_keys
+  changed_when: false
+  failed_when: false
+
+- name: Assert the administrative user is configured
+  ansible.builtin.assert:
+    that:
+      - baseline_verification_admin.stdout | length > 0
+      - "'sudo' in baseline_verification_admin_groups.stdout.split()"
+      - baseline_verification_authorized_keys.stat.exists
+      - baseline_verification_authorized_keys.stat.mode == '0600'
+      - baseline_ssh_public_key.split()[:2] | join(' ') in baseline_verification_ssh_keys.stdout
+    fail_msg: >-
+      The administrative user {{ admin_username }} is missing, is not in the
+      sudo group, or its authorized_keys is missing, is not 0600, or does not
+      contain the configured public key.
+    success_msg: "Administrative user: {{ admin_username }}"
+
+- name: Read the effective SSH configuration
+  ansible.builtin.command:
+    cmd: sshd -T
+  register: baseline_verification_sshd
+  changed_when: false
+
+- name: Assert the SSH daemon is hardened
+  ansible.builtin.assert:
+    that:
+      - "'permitrootlogin no' in baseline_verification_sshd.stdout"
+      - "'pubkeyauthentication yes' in baseline_verification_sshd.stdout"
+      - "'passwordauthentication no' in baseline_verification_sshd.stdout"
+      - "'kbdinteractiveauthentication no' in baseline_verification_sshd.stdout"
+      - "'permitemptypasswords no' in baseline_verification_sshd.stdout"
+      - "'x11forwarding no' in baseline_verification_sshd.stdout"
+      - "'maxauthtries 3' in baseline_verification_sshd.stdout"
+    fail_msg: "The effective sshd configuration is not hardened."
+    success_msg: "SSH: hardened"
+
+- name: Read the firewall table
+  ansible.builtin.command:
+    cmd: nft list table inet {{ baseline_verification_firewall_table }}
+  register: baseline_verification_firewall
+  changed_when: false
+  failed_when: false
+
+- name: Assert the firewall is active
+  ansible.builtin.assert:
+    that:
+      - "'policy drop' in baseline_verification_firewall.stdout"
+    fail_msg: "The baseline firewall table is not active."
+    success_msg: "Firewall: {{ baseline_verification_firewall_table }} active"
+
+- name: Read the effective journald configuration
+  ansible.builtin.command:
+    cmd: systemd-analyze cat-config systemd/journald.conf
+  register: baseline_verification_journald
+  changed_when: false
+
+- name: Check the persistent journal directory
+  ansible.builtin.stat:
+    path: /var/log/journal
+  register: baseline_verification_journal_dir
+
+- name: Assert logging is persistent
+  ansible.builtin.assert:
+    that:
+      - baseline_verification_journal_dir.stat.isdir | default(false)
+      - "'Storage=persistent' in baseline_verification_journald.stdout"
+    fail_msg: "The journal is not persistent."
+    success_msg: "Journald: persistent"
+
+- name: Read the logrotate timer state  # noqa: command-instead-of-module
+  ansible.builtin.command:
+    cmd: systemctl is-enabled {{ baseline_verification_logrotate_timer }}
+  register: baseline_verification_logrotate
+  changed_when: false
+  failed_when: false
+
+- name: Assert log rotation is scheduled
+  ansible.builtin.assert:
+    that:
+      - baseline_verification_logrotate.stdout | trim == 'enabled'
+    fail_msg: "{{ baseline_verification_logrotate_timer }} is not enabled."
+    success_msg: "Logrotate: {{ baseline_verification_logrotate_timer }} enabled"
+
+- name: Check the required packages
+  ansible.builtin.command:
+    argv:
+      - dpkg-query
+      - -W
+      - -f=${Package} ${Status}\n
+      - "{{ item }}"
+  loop: "{{ baseline_verification_required_packages }}"
+  loop_control:
+    label: "{{ item }}"
+  register: baseline_verification_packages
+  changed_when: false
+  failed_when: false
+
+- name: Assert the required packages are installed
+  ansible.builtin.assert:
+    that:
+      - "'install ok installed' in item.stdout"
+    fail_msg: "Package '{{ item.item }}' is not installed."
+    success_msg: "Package: {{ item.item }}"
+  loop: "{{ baseline_verification_packages.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Read the periodic APT configuration
+  ansible.builtin.command:
+    cmd: cat /etc/apt/apt.conf.d/20auto-upgrades
+  register: baseline_verification_apt_periodic
+  changed_when: false
+
+- name: Read the APT policy
+  ansible.builtin.command:
+    cmd: apt-cache policy
+  register: baseline_verification_apt_policy
+  changed_when: false
+
+- name: Assert APT is configured
+  ansible.builtin.assert:
+    that:
+      - "'Unattended-Upgrade \"0\"' in baseline_verification_apt_periodic.stdout"
+      - "'trixie/main' in baseline_verification_apt_policy.stdout"
+      - "'trixie-updates/main' in baseline_verification_apt_policy.stdout"
+      - "'trixie-security/main' in baseline_verification_apt_policy.stdout"
+    fail_msg: "APT is not configured as the baseline expects."
+    success_msg: "APT: repositories and periodic maintenance configured"
+
+- name: Check the baseline reports
+  ansible.builtin.stat:
+    path: "{{ baseline_verification_report_dir }}/{{ item }}"
+  loop: "{{ baseline_verification_reports }}"
+  loop_control:
+    label: "{{ item }}"
+  register: baseline_verification_report_stats
+
+- name: Assert the baseline reports exist
+  ansible.builtin.assert:
+    that:
+      - baseline_verification_report_stats.results | selectattr('stat.exists', 'eq', false) | list | length == 0
+    fail_msg: "One or more baseline reports are missing from {{ baseline_verification_report_dir }}."
+    success_msg: "Reports: {{ baseline_verification_reports | join(', ') }}"
+
+- name: Report the verification summary
+  ansible.builtin.debug:
+    msg: >-
+      All baseline checks passed for {{ server_hostname }}
+      ({{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}).
