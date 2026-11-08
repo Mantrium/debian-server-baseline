@@ -1,0 +1,12 @@
+---
+baseline_ssh_port: 22
+baseline_ssh_config_file: /etc/ssh/sshd_config.d/00-server-baseline.conf
+
+baseline_ssh_permit_root_login: "no"
+baseline_ssh_pubkey_authentication: "yes"
+baseline_ssh_password_authentication: "no"
+baseline_ssh_kbd_interactive_authentication: "no"
+baseline_ssh_permit_empty_passwords: "no"
+baseline_ssh_x11_forwarding: "no"
+baseline_ssh_max_auth_tries: 3
+baseline_ssh_login_grace_time: 30

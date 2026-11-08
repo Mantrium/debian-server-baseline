@@ -1,0 +1,34 @@
+---
+# Harden the OpenSSH server.
+#
+# The 00- prefix matters: Debian's sshd_config includes sshd_config.d/*.conf
+# first and sshd uses the first value it sees, so this file wins over any other
+# drop-in.
+
+- name: Configure the SSH daemon
+  ansible.builtin.template:
+    src: 00-server-baseline.conf.j2
+    dest: "{{ baseline_ssh_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "/usr/sbin/sshd -t -f %s"
+  notify: Validate and reload ssh
+
+- name: Read the effective SSH daemon configuration
+  ansible.builtin.command:
+    cmd: sshd -T
+  register: baseline_sshd_effective
+  changed_when: false
+
+- name: Assert the effective SSH configuration matches the baseline
+  ansible.builtin.assert:
+    that:
+      - "'permitrootlogin no' in baseline_sshd_effective.stdout"
+      - "'pubkeyauthentication yes' in baseline_sshd_effective.stdout"
+      - "'passwordauthentication no' in baseline_sshd_effective.stdout"
+      - "'kbdinteractiveauthentication no' in baseline_sshd_effective.stdout"
+      - "'permitemptypasswords no' in baseline_sshd_effective.stdout"
+      - "'x11forwarding no' in baseline_sshd_effective.stdout"
+      - "'maxauthtries 3' in baseline_sshd_effective.stdout"
+    fail_msg: "Effective sshd configuration does not match the baseline."

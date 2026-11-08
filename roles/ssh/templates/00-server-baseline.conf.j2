@@ -1,0 +1,17 @@
+# Managed by infra-server-baseline (role: ssh). Do not edit manually.
+#
+# This file is included first by /etc/ssh/sshd_config, so the directives below
+# take precedence over any other drop-in.
+
+Port {{ baseline_ssh_port }}
+
+PermitRootLogin {{ baseline_ssh_permit_root_login }}
+PubkeyAuthentication {{ baseline_ssh_pubkey_authentication }}
+PasswordAuthentication {{ baseline_ssh_password_authentication }}
+KbdInteractiveAuthentication {{ baseline_ssh_kbd_interactive_authentication }}
+PermitEmptyPasswords {{ baseline_ssh_permit_empty_passwords }}
+
+X11Forwarding {{ baseline_ssh_x11_forwarding }}
+
+MaxAuthTries {{ baseline_ssh_max_auth_tries }}
+LoginGraceTime {{ baseline_ssh_login_grace_time }}

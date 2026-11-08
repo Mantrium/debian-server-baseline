@@ -1,0 +1,14 @@
+---
+# A failing `sshd -t` aborts the play before the reload, so a broken
+# configuration can never be activated.
+- name: Validate the SSH daemon configuration
+  ansible.builtin.command:
+    cmd: /usr/sbin/sshd -t
+  changed_when: false
+  listen: Validate and reload ssh
+
+- name: Reload the SSH daemon
+  ansible.builtin.systemd:
+    name: ssh
+    state: reloaded
+  listen: Validate and reload ssh

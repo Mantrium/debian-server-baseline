@@ -16,6 +16,7 @@
     - apt_maintenance
     - base_packages
     - users
+    - ssh
   tasks:
     - name: Assert the target is Debian 13 (Trixie)
       ansible.builtin.assert:
