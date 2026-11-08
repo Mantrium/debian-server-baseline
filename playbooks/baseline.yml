@@ -1,0 +1,21 @@
+---
+# Apply the Debian 13 server baseline.
+#
+# Roles are added to this play as each one is implemented and verified; the
+# final order is the one documented in docs/architecture.md.
+
+- name: Apply the Debian 13 server baseline
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - preflight
+  tasks:
+    - name: Assert the target is Debian 13 (Trixie)
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Debian'
+          - ansible_facts.distribution_major_version == '13'
+        fail_msg: >-
+          This baseline targets Debian 13 (Trixie); detected
+          {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}.

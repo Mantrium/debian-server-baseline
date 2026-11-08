@@ -1,0 +1,26 @@
+---
+# Prepare a Debian guest so that Ansible can manage it.
+#
+# This play deliberately uses `raw` and no fact gathering: it must work on a
+# host that has no Python interpreter yet. It changes nothing else.
+
+- name: Bootstrap Debian guests for Ansible
+  hosts: all
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Check for a usable Python 3 interpreter
+      ansible.builtin.raw: test -x /usr/bin/python3
+      register: baseline_bootstrap_python
+      changed_when: false
+      failed_when: false
+
+    - name: Install python3 and python3-apt
+      ansible.builtin.raw: >-
+        sudo apt-get update &&
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-apt
+      when: baseline_bootstrap_python.rc != 0
+      changed_when: true
+
+    - name: Gather facts
+      ansible.builtin.setup:
