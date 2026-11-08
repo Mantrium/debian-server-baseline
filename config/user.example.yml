@@ -1,0 +1,5 @@
+---
+server_hostname: myserver
+admin_username: admin
+server_timezone: Etc/UTC
+ssh_public_key_path: /home/user/.ssh/id_ed25519.pub

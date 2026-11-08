@@ -1,0 +1,6 @@
+---
+# Fixture: every required variable is present but none of the values is valid.
+server_hostname: "-bad host-"
+admin_username: "Bad User"
+server_timezone: Not/AZone
+ssh_public_key_path: /nonexistent/key.pub

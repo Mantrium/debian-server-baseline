@@ -1,0 +1,12 @@
+---
+# The baseline deliberately uses two naming schemes:
+#   * `baseline_*` for internal role variables, so that every role shares one
+#     prefix and a variable can be traced back to this repository;
+#   * the four unprefixed user-facing variables from config/user.yml
+#     (server_hostname, admin_username, server_timezone, ssh_public_key_path),
+#     which are the authoritative public interface.
+# `var-naming[no-role-prefix]` wants `<role>_*` in each role's defaults, which
+# would defeat both conventions, so it is disabled.
+profile: basic
+skip_list:
+  - var-naming[no-role-prefix]

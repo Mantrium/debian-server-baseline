@@ -1,0 +1,24 @@
+# Local user configuration - never commit
+config/user.yml
+
+# Local environment
+.env
+
+# Vagrant state
+.vagrant/
+
+# Ansible
+*.retry
+.vault_pass
+.ansible/
+
+# Production connection details
+inventories/production/hosts.yml
+inventories/production/group_vars/all.yml
+
+# Secrets and keys
+*.pem
+
+# Python
+__pycache__/
+*.pyc

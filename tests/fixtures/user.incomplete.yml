@@ -1,0 +1,3 @@
+---
+# Fixture: valid YAML, but only one of the four required variables is set.
+server_hostname: incomplete.example

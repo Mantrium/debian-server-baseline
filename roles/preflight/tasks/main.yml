@@ -1,0 +1,103 @@
+---
+# Single gate for every playbook in this repository. It proves that the
+# operator's configuration exists, is complete, is well formed and points at a
+# usable SSH key pair before any role is allowed to change the target.
+
+- name: Check whether the user configuration exists
+  ansible.builtin.stat:
+    path: "{{ baseline_user_config_path }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: baseline_user_config_stat
+
+- name: Assert the user configuration exists
+  ansible.builtin.assert:
+    that:
+      - baseline_user_config_stat.stat.exists
+    fail_msg: >-
+      User configuration {{ baseline_user_config_path }} is missing. Create it
+      from the example: cp config/user.example.yml config/user.yml
+
+- name: Load the user configuration
+  ansible.builtin.include_vars:
+    file: "{{ baseline_user_config_path }}"
+
+- name: Assert every required user variable is defined and non-empty
+  ansible.builtin.assert:
+    that:
+      - (lookup('vars', item, default='') | string | trim | length) > 0
+    fail_msg: >-
+      Required variable '{{ item }}' is missing or empty in
+      {{ baseline_user_config_path }}. See config/user.example.yml.
+    success_msg: "Required variable '{{ item }}' is set."
+  loop: "{{ baseline_required_user_vars }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Assert the user configuration values are well formed
+  ansible.builtin.assert:
+    that:
+      - server_hostname is match('^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$')
+      - admin_username is match('^[a-z_][a-z0-9_-]*$')
+    fail_msg: >-
+      server_hostname '{{ server_hostname }}' or admin_username
+      '{{ admin_username }}' is not a valid value. server_hostname must be a
+      DNS-style name and admin_username must match ^[a-z_][a-z0-9_-]*$.
+
+- name: Check whether the configured timezone exists on the target
+  ansible.builtin.stat:
+    path: "/usr/share/zoneinfo/{{ server_timezone }}"
+  register: baseline_timezone_stat
+
+- name: Assert the configured timezone is valid
+  ansible.builtin.assert:
+    that:
+      - baseline_timezone_stat.stat.exists
+    fail_msg: "server_timezone '{{ server_timezone }}' is not a valid timezone on this host."
+
+- name: Check whether the SSH public key exists on the controller
+  ansible.builtin.stat:
+    path: "{{ ssh_public_key_path }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: baseline_ssh_public_key_stat
+
+- name: Assert the SSH public key is a readable, non-empty file
+  ansible.builtin.assert:
+    that:
+      - baseline_ssh_public_key_stat.stat.exists
+      - baseline_ssh_public_key_stat.stat.isreg
+      - baseline_ssh_public_key_stat.stat.size > 0
+    fail_msg: "SSH public key is missing or invalid."
+
+- name: Read the SSH public key
+  ansible.builtin.set_fact:
+    baseline_ssh_public_key: "{{ lookup('file', ssh_public_key_path) | trim }}"
+
+- name: Assert the SSH public key is a recognised key type
+  ansible.builtin.assert:
+    that:
+      - baseline_ssh_public_key.split() | first in baseline_ssh_key_types
+    fail_msg: "{{ ssh_public_key_path }} does not contain a recognised SSH public key."
+
+- name: Derive the matching private key path
+  ansible.builtin.set_fact:
+    baseline_ssh_private_key_path: "{{ ssh_public_key_path | regex_replace('\\.pub$', '') }}"
+
+- name: Check whether the matching private key exists on the controller
+  ansible.builtin.stat:
+    path: "{{ baseline_ssh_private_key_path }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: baseline_ssh_private_key_stat
+
+- name: Assert the matching private key exists
+  ansible.builtin.assert:
+    that:
+      - baseline_ssh_private_key_stat.stat.exists
+    fail_msg: >-
+      Matching private key {{ baseline_ssh_private_key_path }} not found; it is
+      required for authentication testing.

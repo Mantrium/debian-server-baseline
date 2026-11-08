@@ -1,0 +1,16 @@
+---
+baseline_user_config_path: "{{ playbook_dir }}/../config/user.yml"
+baseline_user_config_example_path: "{{ playbook_dir }}/../config/user.example.yml"
+baseline_required_user_vars:
+  - server_hostname
+  - admin_username
+  - server_timezone
+  - ssh_public_key_path
+baseline_ssh_key_types:
+  - ssh-ed25519
+  - ssh-rsa
+  - ecdsa-sha2-nistp256
+  - ecdsa-sha2-nistp384
+  - ecdsa-sha2-nistp521
+  - sk-ssh-ed25519@openssh.com
+  - sk-ecdsa-sha2-nistp256@openssh.com
