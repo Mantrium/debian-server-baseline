@@ -29,7 +29,7 @@
   changed_when: false
   failed_when: false
 
-- name: Simulate a distribution upgrade
+- name: Simulate a distribution upgrade  # noqa: command-instead-of-module
   ansible.builtin.command:
     cmd: apt-get -s dist-upgrade
   register: baseline_dist_upgrade

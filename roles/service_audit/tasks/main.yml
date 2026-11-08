@@ -13,19 +13,19 @@
     group: root
     mode: "0750"
 
-- name: Collect the running services
+- name: Collect the running services  # noqa: command-instead-of-module
   ansible.builtin.command:
     cmd: systemctl --type=service --state=running --no-pager --plain
   register: baseline_running_services
   changed_when: false
 
-- name: Collect the enabled unit files
+- name: Collect the enabled unit files  # noqa: command-instead-of-module
   ansible.builtin.command:
     cmd: systemctl list-unit-files --state=enabled --no-pager --plain
   register: baseline_enabled_units
   changed_when: false
 
-- name: Collect the failed units
+- name: Collect the failed units  # noqa: command-instead-of-module
   ansible.builtin.command:
     cmd: systemctl --failed --no-pager --plain
   register: baseline_failed_units
