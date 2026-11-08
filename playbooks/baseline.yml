@@ -20,6 +20,9 @@
     - nftables
     - journald
     - logrotate
+    - service_audit
+    - kernel_status
+    - storage_checks
   tasks:
     - name: Assert the target is Debian 13 (Trixie)
       ansible.builtin.assert:

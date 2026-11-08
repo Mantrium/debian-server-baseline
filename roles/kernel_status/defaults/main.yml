@@ -1,0 +1,3 @@
+---
+baseline_report_dir: /var/log/server-baseline
+baseline_kernel_status_report: /var/log/server-baseline/kernel-status.txt

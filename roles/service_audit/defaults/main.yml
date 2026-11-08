@@ -1,0 +1,9 @@
+---
+baseline_report_dir: /var/log/server-baseline
+baseline_service_audit_report: /var/log/server-baseline/service-audit.txt
+
+# Optional expectations. Each entry is a regular expression that must match the
+# corresponding report section. Empty by default: the baseline reports, it does
+# not assume which services a server runs.
+baseline_expected_services: []
+baseline_expected_listeners: []

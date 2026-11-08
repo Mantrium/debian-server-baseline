@@ -1,0 +1,6 @@
+---
+baseline_report_dir: /var/log/server-baseline
+baseline_storage_report: /var/log/server-baseline/storage.txt
+
+# Report filesystems at or above this percentage of use.
+baseline_storage_full_threshold: 90
