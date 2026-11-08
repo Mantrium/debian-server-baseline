@@ -1,0 +1,13 @@
+---
+# Copy to all.yml and adjust. Loaded for every host in the production inventory.
+#
+# The authoritative user configuration is config/user.yml; it is read here so
+# that the SSH connection user and private key stay in sync with it. Ansible
+# must therefore be run from the repository root.
+
+baseline_user_config: "{{ lookup('file', 'config/user.yml') | from_yaml }}"
+
+ansible_user: "{{ baseline_user_config.admin_username }}"
+ansible_ssh_private_key_file: "{{ baseline_user_config.ssh_public_key_path | regex_replace('\\.pub$', '') }}"
+ansible_python_interpreter: /usr/bin/python3
+ansible_ssh_common_args: "-o StrictHostKeyChecking=accept-new"
