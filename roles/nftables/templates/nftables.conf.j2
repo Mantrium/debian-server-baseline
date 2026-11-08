@@ -1,0 +1,10 @@
+#!/usr/sbin/nft -f
+#
+# Managed by infra-server-baseline (role: nftables). Do not edit manually.
+#
+# This file deliberately does NOT contain "flush ruleset": unrelated tables
+# created by other tools or providers must be preserved.
+#
+# Drop-in rulesets are loaded from /etc/nftables.d/.
+
+include "/etc/nftables.d/*.nft"

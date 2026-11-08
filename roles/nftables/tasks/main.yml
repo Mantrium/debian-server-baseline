@@ -1,0 +1,81 @@
+---
+# Configure the nftables firewall.
+#
+# The ruleset lives in a drop-in under /etc/nftables.d/ and /etc/nftables.conf
+# only includes it. Nothing ever flushes the whole ruleset, so tables created
+# by other tools or providers survive.
+
+- name: Warn that the firewall is disabled
+  ansible.builtin.debug:
+    msg: >-
+      baseline_firewall_enabled is false: the baseline firewall is not being
+      configured and the target keeps whatever ruleset it already has.
+  when: not (baseline_firewall_enabled | bool)
+
+- name: Configure the baseline firewall
+  when: baseline_firewall_enabled | bool
+  block:
+    - name: Create the nftables drop-in directory
+      ansible.builtin.file:
+        path: "{{ baseline_firewall_dropin_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Configure the nftables entry point
+      ansible.builtin.template:
+        src: nftables.conf.j2
+        dest: "{{ baseline_firewall_conf }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Configure the baseline firewall table
+      ansible.builtin.template:
+        src: 10-server-baseline.nft.j2
+        dest: "{{ baseline_firewall_dropin }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create the nftables unit drop-in directory
+      ansible.builtin.file:
+        path: "{{ baseline_firewall_service_dropin_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Stop the nftables unit from flushing the whole ruleset
+      ansible.builtin.template:
+        src: nftables.service.d.conf.j2
+        dest: "{{ baseline_firewall_service_dropin }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload systemd and nftables
+
+    - name: Validate the nftables configuration
+      ansible.builtin.command:
+        cmd: nft -c -f {{ baseline_firewall_conf }}
+      changed_when: false
+      check_mode: false
+
+    - name: Enable and start nftables
+      ansible.builtin.systemd:
+        name: nftables
+        enabled: true
+        state: started
+
+    - name: Read the baseline firewall table
+      ansible.builtin.command:
+        cmd: nft list table inet {{ baseline_firewall_table }}
+      register: baseline_firewall_table_state
+      changed_when: false
+
+    - name: Assert the baseline firewall table is active
+      ansible.builtin.assert:
+        that:
+          - "'policy drop' in baseline_firewall_table_state.stdout"
+        fail_msg: "The baseline firewall table is not active."

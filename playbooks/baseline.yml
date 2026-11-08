@@ -17,6 +17,7 @@
     - base_packages
     - users
     - ssh
+    - nftables
   tasks:
     - name: Assert the target is Debian 13 (Trixie)
       ansible.builtin.assert:

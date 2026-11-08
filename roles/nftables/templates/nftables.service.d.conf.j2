@@ -1,0 +1,5 @@
+[Service]
+# Debian's default ExecStop runs "nft flush ruleset", which flushes the whole
+# ruleset. Only our own table may be removed.
+ExecStop=
+ExecStop=/usr/sbin/nft destroy table inet {{ baseline_firewall_table }}

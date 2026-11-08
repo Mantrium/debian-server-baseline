@@ -1,0 +1,44 @@
+#!/usr/sbin/nft -f
+#
+# Managed by infra-server-baseline (role: nftables). Do not edit manually.
+#
+# The table is destroyed and recreated so that this file is idempotent and so
+# that no other table in the ruleset is ever flushed.
+
+destroy table inet {{ baseline_firewall_table }}
+
+table inet {{ baseline_firewall_table }} {
+	chain input {
+		type filter hook input priority filter; policy {{ baseline_firewall_default_input_policy }};
+
+		iif lo accept
+		ct state established,related accept
+		ct state invalid drop
+
+		meta l4proto icmp accept
+		meta l4proto ipv6-icmp accept
+{% if baseline_firewall_dhcp_client %}
+		udp sport 67 udp dport 68 accept
+{% endif %}
+{% for cidr in baseline_firewall_ssh_ipv4_cidrs %}
+		ip saddr {{ cidr }} tcp dport {{ baseline_firewall_ssh_port }} accept
+{% endfor %}
+{% for cidr in baseline_firewall_ssh_ipv6_cidrs %}
+		ip6 saddr {{ cidr }} tcp dport {{ baseline_firewall_ssh_port }} accept
+{% endfor %}
+{% for port in baseline_firewall_tcp_ports %}
+		tcp dport {{ port }} accept
+{% endfor %}
+{% for port in baseline_firewall_udp_ports %}
+		udp dport {{ port }} accept
+{% endfor %}
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy {{ baseline_firewall_forward_policy }};
+	}
+
+	chain output {
+		type filter hook output priority filter; policy {{ baseline_firewall_default_output_policy }};
+	}
+}

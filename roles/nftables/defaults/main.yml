@@ -1,0 +1,28 @@
+---
+baseline_firewall_enabled: true
+baseline_firewall_table: baseline_filter
+
+# The SSH port is the one the ssh role configures.
+baseline_firewall_ssh_port: "{{ baseline_ssh_port }}"
+baseline_firewall_ssh_ipv4_cidrs:
+  - 0.0.0.0/0
+baseline_firewall_ssh_ipv6_cidrs:
+  - "::/0"
+
+# Extra ports to open, for services layered on top of the baseline.
+baseline_firewall_tcp_ports: []
+baseline_firewall_udp_ports: []
+
+baseline_firewall_default_input_policy: drop
+baseline_firewall_default_output_policy: accept
+baseline_firewall_forward_policy: drop
+
+# Allow the DHCP client exchange so that a DHCP-configured interface keeps
+# working once the input policy is drop.
+baseline_firewall_dhcp_client: true
+
+baseline_firewall_conf: /etc/nftables.conf
+baseline_firewall_dropin_dir: /etc/nftables.d
+baseline_firewall_dropin: /etc/nftables.d/10-server-baseline.nft
+baseline_firewall_service_dropin_dir: /etc/systemd/system/nftables.service.d
+baseline_firewall_service_dropin: /etc/systemd/system/nftables.service.d/10-server-baseline.conf
