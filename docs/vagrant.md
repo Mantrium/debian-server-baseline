@@ -24,6 +24,27 @@ make collections  # ansible-galaxy collection install -r requirements.yml
 
 `make check-host` reports every requirement and installs nothing.
 
+### Firewall
+
+libvirt NATs guest traffic through the host, so the host firewall must forward
+packets coming from the libvirt bridge. A firewall that drops forwarded packets
+leaves the guest without internet access, and every `apt` task in the baseline
+then fails with `Failed to update apt cache`.
+
+ICMP is usually still allowed, so the signature is a guest that can
+`ping 1.1.1.1` but cannot reach an HTTP mirror.
+
+With `ufw`:
+
+```bash
+uplink=$(ip route show default | awk '{print $5; exit}')
+sudo ufw route allow in on virbr0 out on "$uplink"
+sudo ufw route allow in on virbr1 out on "$uplink"
+```
+
+Alternatively, set `DEFAULT_FORWARD_POLICY="ACCEPT"` in `/etc/default/ufw` and
+run `sudo ufw reload`.
+
 ## Box selection
 
 The environment uses `cloud-image/debian-13`, pinned to a specific version.

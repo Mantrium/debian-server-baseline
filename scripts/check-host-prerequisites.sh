@@ -52,6 +52,25 @@ else
 fi
 
 echo
+echo "== Guest network forwarding =="
+# libvirt NATs guest traffic through this host, so the host firewall must
+# forward packets from the libvirt bridge. A firewall that drops forwarded
+# packets leaves the guest without internet access, which breaks every apt
+# task in the baseline. ICMP is usually still allowed, so a guest that can
+# ping but cannot reach an HTTP mirror is the signature of this problem.
+if systemctl is-active --quiet ufw 2>/dev/null; then
+  note "ufw" "active"
+  if grep -q '^DEFAULT_FORWARD_POLICY="DROP"' /etc/default/ufw 2>/dev/null &&
+     ! grep -qE '^-A ufw-user-forward .*-j ACCEPT' /etc/ufw/user.rules 2>/dev/null; then
+    bad "ufw forwards guest traffic" "see the fix below"
+  else
+    ok "ufw forwards guest traffic"
+  fi
+else
+  note "ufw" "not active"
+fi
+
+echo
 echo "== SSH key pair =="
 for f in "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"; do
   if [ -f "$f" ]; then ok "$f"; else bad "$f" "ssh-keygen -t ed25519"; fi
@@ -76,6 +95,19 @@ cat <<'EOF'
   vagrant libvirt qemu-base qemu-system-x86 qemu-img make git
   Install with: sudo pacman -S --needed vagrant libvirt qemu-base qemu-system-x86 qemu-img make git
   Then:         sudo usermod -aG libvirt "$USER"   (log out and back in)
+EOF
+
+echo
+echo "== Host firewall (only if the guest has no internet) =="
+cat <<'EOF'
+  Allow libvirt guests to reach the network through this host:
+
+    sudo ufw route allow in on virbr0 out on <uplink>
+    sudo ufw route allow in on virbr1 out on <uplink>
+
+  Replace <uplink> with the interface carrying your default route
+  (ip route show default). Alternatively, set DEFAULT_FORWARD_POLICY="ACCEPT"
+  in /etc/default/ufw and run: sudo ufw reload
 EOF
 
 echo
