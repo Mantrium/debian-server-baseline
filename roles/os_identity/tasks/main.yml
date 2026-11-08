@@ -1,0 +1,51 @@
+---
+# Establish the identity of the host: its name, its timezone and its locale.
+#
+# This role runs before base_packages, so it installs the two packages it
+# depends on itself.
+
+- name: Install the identity prerequisite packages
+  ansible.builtin.apt:
+    name: "{{ baseline_identity_prerequisite_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Set the hostname
+  ansible.builtin.hostname:
+    name: "{{ server_hostname }}"
+
+- name: Map the hostname to the loopback address in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^{{ baseline_hosts_entry_ip | regex_escape }}\s'
+    line: "{{ baseline_hosts_entry_ip }} {{ server_hostname }}"
+    state: present
+
+- name: Read the current timezone
+  ansible.builtin.command:
+    cmd: timedatectl show --property=Timezone --value
+  register: baseline_current_timezone
+  changed_when: false
+
+- name: Set the timezone
+  ansible.builtin.command:
+    cmd: timedatectl set-timezone {{ server_timezone }}
+  when: baseline_current_timezone.stdout | trim != server_timezone
+  changed_when: true
+
+- name: Enable the configured locale in /etc/locale.gen
+  ansible.builtin.lineinfile:
+    path: /etc/locale.gen
+    regexp: '^#?\s*{{ baseline_locale | regex_escape }}\s'
+    line: "{{ baseline_locale }} {{ baseline_locale_charmap }}"
+    state: present
+  notify: Regenerate locales
+
+- name: Select the system locale
+  ansible.builtin.lineinfile:
+    path: /etc/default/locale
+    regexp: '^LANG='
+    line: "LANG={{ baseline_locale }}"
+    create: true
+    mode: "0644"

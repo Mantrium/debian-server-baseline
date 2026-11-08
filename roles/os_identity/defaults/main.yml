@@ -1,0 +1,12 @@
+---
+# Locale to generate and select on the target.
+baseline_locale: en_US.UTF-8
+baseline_locale_charmap: UTF-8
+
+# Address used for the hostname entry in /etc/hosts.
+baseline_hosts_entry_ip: 127.0.1.1
+
+# This role runs before base_packages, so it installs what it needs itself.
+baseline_identity_prerequisite_packages:
+  - locales
+  - tzdata

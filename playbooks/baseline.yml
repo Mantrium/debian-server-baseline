@@ -10,6 +10,7 @@
   gather_facts: true
   roles:
     - preflight
+    - os_identity
   tasks:
     - name: Assert the target is Debian 13 (Trixie)
       ansible.builtin.assert:
