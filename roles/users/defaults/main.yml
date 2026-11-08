@@ -1,0 +1,9 @@
+---
+# Shell and groups for the administrative account.
+baseline_admin_shell: /bin/bash
+baseline_admin_groups:
+  - sudo
+
+# Additional accounts to create. Each entry takes `name`, and optionally
+# `groups`, `shell` and `ssh_public_key_path`.
+baseline_additional_users: []

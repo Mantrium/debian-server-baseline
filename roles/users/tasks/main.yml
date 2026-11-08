@@ -1,0 +1,58 @@
+---
+# Create the administrative account and install the operator's public key.
+#
+# The role never touches root, vagrant, or any account that is not named in
+# admin_username or baseline_additional_users.
+
+- name: Create the administrative user
+  ansible.builtin.user:
+    name: "{{ admin_username }}"
+    shell: "{{ baseline_admin_shell }}"
+    groups: "{{ baseline_admin_groups }}"
+    append: true
+    create_home: true
+    state: present
+
+- name: Create the administrative user's SSH directory
+  ansible.builtin.file:
+    path: "/home/{{ admin_username }}/.ssh"
+    state: directory
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: "0700"
+
+- name: Install the administrative user's public key
+  ansible.posix.authorized_key:
+    user: "{{ admin_username }}"
+    key: "{{ baseline_ssh_public_key }}"
+    state: present
+    exclusive: false
+
+- name: Restrict the administrative user's authorized_keys
+  ansible.builtin.file:
+    path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: "0600"
+
+- name: Create the additional users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    shell: "{{ item.shell | default(baseline_admin_shell) }}"
+    groups: "{{ item.groups | default(baseline_admin_groups) }}"
+    append: true
+    create_home: true
+    state: present
+  loop: "{{ baseline_additional_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install the additional users' public keys
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ lookup('file', item.ssh_public_key_path) }}"
+    state: present
+    exclusive: false
+  loop: "{{ baseline_additional_users | selectattr('ssh_public_key_path', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.name }}"

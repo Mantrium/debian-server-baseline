@@ -48,6 +48,15 @@ user_config() {
   sed -n "s/^$1:[[:space:]]*//p" "$USER_CONFIG" | head -n 1 | sed -e 's/^"//' -e 's/"$//'
 }
 
+# user_config_resolved <key> - read a scalar from config/user.yml with any
+# Jinja expression resolved. The Mantrium configuration stores the SSH key path
+# as "{{ lookup('env', 'HOME') }}/.ssh/id_ed25519.pub", so the raw value is not
+# a usable path.
+user_config_resolved() {
+  ansible localhost -c local -m debug -a "var=$1" -e "@$USER_CONFIG" 2>/dev/null |
+    sed -n "s/.*\"$1\": \"\(.*\)\".*/\1/p"
+}
+
 baseline_ok() {
   baseline_checks=$((baseline_checks + 1))
   printf 'ok   %s\n' "$1"
