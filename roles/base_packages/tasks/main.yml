@@ -1,0 +1,12 @@
+---
+# Install the baseline package set.
+#
+# apt_upgrade has already refreshed the package index, so the cache is warm and
+# the update below is normally skipped.
+
+- name: Install the baseline packages
+  ansible.builtin.apt:
+    name: "{{ baseline_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600

@@ -14,6 +14,7 @@
     - os_identity
     - apt_sources
     - apt_maintenance
+    - base_packages
   tasks:
     - name: Assert the target is Debian 13 (Trixie)
       ansible.builtin.assert:

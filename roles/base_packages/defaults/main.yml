@@ -1,0 +1,53 @@
+---
+# Packages every baseline server needs.
+baseline_base_packages:
+  - sudo
+  - openssh-server
+  - ca-certificates
+  - curl
+  - wget
+  - git
+  - jq
+  - rsync
+  - neovim
+  - python3
+  - python3-apt
+  - locales
+  - tzdata
+
+# Firewall.
+baseline_security_packages:
+  - nftables
+
+# Tools that report what an upgrade would do before it is applied.
+baseline_maintenance_packages:
+  - apt-listchanges
+  - apt-listbugs
+  - debian-security-support
+  - needrestart
+
+# Network inspection.
+#
+# `dnsutils` is a transitional package that no longer exists in Debian 13;
+# `bind9-dnsutils` is what provides dig, host and nslookup.
+baseline_network_packages:
+  - iproute2
+  - iputils-ping
+  - bind9-dnsutils
+  - tcpdump
+  - lsof
+  - ethtool
+
+# Resource monitoring.
+baseline_monitoring_packages:
+  - btop
+  - iftop
+  - sysstat
+
+# Log rotation.
+baseline_system_packages:
+  - logrotate
+
+baseline_packages: >-
+  {{ baseline_base_packages + baseline_security_packages + baseline_maintenance_packages
+     + baseline_network_packages + baseline_monitoring_packages + baseline_system_packages }}
