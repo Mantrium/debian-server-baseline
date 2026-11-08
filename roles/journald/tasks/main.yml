@@ -1,0 +1,51 @@
+---
+# Make system logging persistent and bound its size.
+#
+# Without /var/log/journal the journal lives in /run and is lost on reboot.
+
+- name: Create the persistent journal directory
+  ansible.builtin.file:
+    path: "{{ baseline_journald_log_dir }}"
+    state: directory
+    owner: root
+    group: systemd-journal
+    mode: "2755"
+
+- name: Create the journald drop-in directory
+  ansible.builtin.file:
+    path: "{{ baseline_journald_conf_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure journald
+  ansible.builtin.template:
+    src: 10-server-baseline.conf.j2
+    dest: "{{ baseline_journald_conf_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart systemd-journald
+
+- name: Read the journal disk usage
+  ansible.builtin.command:
+    cmd: journalctl --disk-usage
+  register: baseline_journald_disk_usage
+  changed_when: false
+
+- name: Find the machine-id journal directory
+  ansible.builtin.find:
+    paths: "{{ baseline_journald_log_dir }}"
+    file_type: directory
+    recurse: false
+  register: baseline_journald_machine_id_dirs
+
+- name: Assert the journal is stored persistently
+  ansible.builtin.assert:
+    that:
+      - baseline_journald_machine_id_dirs.matched > 0
+    fail_msg: >-
+      {{ baseline_journald_log_dir }} does not contain a machine-id directory,
+      so the journal is not persistent.
+    success_msg: "{{ baseline_journald_disk_usage.stdout }}"

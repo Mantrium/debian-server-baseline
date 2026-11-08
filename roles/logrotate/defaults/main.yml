@@ -1,0 +1,4 @@
+---
+baseline_logrotate_report_dir: /var/log/server-baseline
+baseline_logrotate_conf: /etc/logrotate.d/server-baseline
+baseline_logrotate_timer: logrotate.timer

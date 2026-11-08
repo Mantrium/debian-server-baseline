@@ -1,0 +1,10 @@
+---
+baseline_journald_log_dir: /var/log/journal
+baseline_journald_conf_dir: /etc/systemd/journald.conf.d
+baseline_journald_conf_file: /etc/systemd/journald.conf.d/10-server-baseline.conf
+
+baseline_journald_storage: persistent
+baseline_journald_compress: "yes"
+baseline_journald_system_max_use: 500M
+baseline_journald_system_keep_free: 1G
+baseline_journald_max_retention_sec: 1month

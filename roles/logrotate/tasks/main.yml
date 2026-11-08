@@ -1,0 +1,40 @@
+---
+# Rotate the baseline reports.
+#
+# Debian's /etc/logrotate.conf is left untouched; this role only adds a drop-in.
+
+- name: Check that logrotate is installed
+  ansible.builtin.command:
+    argv:
+      - dpkg-query
+      - -W
+      - -f=${Status}
+      - logrotate
+  register: baseline_logrotate_package
+  changed_when: false
+  failed_when: false
+
+- name: Assert that logrotate is installed
+  ansible.builtin.assert:
+    that:
+      - "'install ok installed' in baseline_logrotate_package.stdout"
+    fail_msg: "logrotate is not installed; the base_packages role installs it."
+
+- name: Configure log rotation for the baseline reports
+  ansible.builtin.template:
+    src: server-baseline.j2
+    dest: "{{ baseline_logrotate_conf }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Validate the logrotate configuration
+  ansible.builtin.command:
+    cmd: logrotate --debug /etc/logrotate.conf
+  changed_when: false
+
+- name: Enable and start the logrotate timer
+  ansible.builtin.systemd:
+    name: "{{ baseline_logrotate_timer }}"
+    enabled: true
+    state: started
