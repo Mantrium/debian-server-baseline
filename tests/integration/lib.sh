@@ -34,6 +34,7 @@ guest() {
       -o StrictHostKeyChecking=accept-new \
       -o UserKnownHostsFile="$REPO_ROOT/.vagrant/known_hosts" \
       -o LogLevel=ERROR \
+      -o ConnectTimeout=10 \
       -p "$BASELINE_VAGRANT_PORT" \
       "$BASELINE_VAGRANT_USER@$BASELINE_VAGRANT_HOST" "$@"
 }
