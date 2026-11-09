@@ -40,8 +40,8 @@ On the target: Debian 13 (Trixie).
 make tools
 make collections
 
-# 2. Create your configuration
-cp config/user.example.yml config/user.yml
+# 2. Create your configuration (skipped if it already exists)
+cp -n config/user.example.yml config/user.yml
 $EDITOR config/user.yml
 
 # 3. Check the host, then build and provision the test VM

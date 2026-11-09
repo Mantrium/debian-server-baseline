@@ -19,7 +19,7 @@ default restates them.
 ## Copy workflow
 
 ```bash
-cp config/user.example.yml config/user.yml
+cp -n config/user.example.yml config/user.yml
 $EDITOR config/user.yml
 ```
 

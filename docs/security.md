@@ -101,6 +101,7 @@ and installed kernels, pending kernel upgrades and pending service restarts.
 - It does not configure fail2ban, an intrusion detection system or a log
   shipper. Those belong to a hosting platform layered on top of the baseline.
 - It does not manage TLS material or application secrets.
-- It does not apply upgrades automatically.
+- It does not apply upgrades unattended. `apt_upgrade` applies them at the start
+  of each `baseline.yml` run, which is a deliberate, observable moment.
 - It does not disable the `vagrant` account. That account exists only in the
   Vagrant environment and is not created on a production server.

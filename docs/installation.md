@@ -59,7 +59,7 @@ vagrant plugin install vagrant-libvirt
 ## Configure the baseline
 
 ```bash
-cp config/user.example.yml config/user.yml
+cp -n config/user.example.yml config/user.yml
 $EDITOR config/user.yml
 ```
 
@@ -76,8 +76,8 @@ $EDITOR config/user.yml
 ## Prepare the production inventory
 
 ```bash
-cp inventories/production/hosts.example.yml inventories/production/hosts.yml
-cp inventories/production/group_vars/all.example.yml inventories/production/group_vars/all.yml
+cp -n inventories/production/hosts.example.yml inventories/production/hosts.yml
+cp -n inventories/production/group_vars/all.example.yml inventories/production/group_vars/all.yml
 $EDITOR inventories/production/hosts.yml
 ```
 
@@ -99,8 +99,9 @@ ansible-playbook -i inventories/production/hosts.yml playbooks/verify.yml
 ```
 
 `baseline.yml` starts by refreshing the package index and applying pending
-upgrades, then configures the server. It is idempotent: running it again reports
-no changes.
+upgrades, then configures the server. It is idempotent: running it again
+immediately reports no changes. A later run may apply upgrades that Debian
+published in the meantime, which is the intended behaviour.
 
 ## What the first run does to your access
 
