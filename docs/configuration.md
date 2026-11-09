@@ -8,7 +8,7 @@ key path that belongs to a particular operator.
 
 |Variable|Meaning|Example|
 |---|---|---|
-|`server_hostname`|The hostname applied to the target and used as the Vagrant VM hostname.|`myserver`|
+|`server_hostname`|The hostname applied to the target by `os_identity`. The Vagrantfile also reads it, only to abort early when the configuration is missing.|`myserver`|
 |`admin_username`|The administrative account created on the target and added to `sudo`.|`admin`|
 |`server_timezone`|The system timezone, as a name valid under `/usr/share/zoneinfo`.|`Etc/UTC`|
 |`ssh_public_key_path`|Path **on the controller** to the public key installed for `admin_username`.|`/home/user/.ssh/id_ed25519.pub`|

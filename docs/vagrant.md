@@ -18,7 +18,7 @@ Then install the Vagrant provider plugin and the Ansible toolchain:
 
 ```bash
 vagrant plugin install vagrant-libvirt
-make tools        # uv tool install -r requirements-dev.txt
+make tools        # install the toolchain with uv
 make collections  # ansible-galaxy collection install -r requirements.yml
 ```
 

@@ -124,6 +124,8 @@ mistake cannot lock the operator out of an unhardened daemon.
 
 | Path | Owner |
 |---|---|
+| `/etc/hostname`, `/etc/hosts` | `os_identity` |
+| `/etc/locale.gen`, `/etc/default/locale` | `os_identity` |
 | `/etc/apt/sources.list.d/debian.sources` | `apt_sources` |
 | `/etc/apt/apt.conf.d/20auto-upgrades` | `apt_maintenance` |
 | `/etc/ssh/sshd_config.d/00-server-baseline.conf` | `ssh` |
@@ -134,10 +136,12 @@ mistake cannot lock the operator out of an unhardened daemon.
 | `/etc/logrotate.d/server-baseline` | `logrotate` |
 | `/var/log/server-baseline/` | the reporting roles |
 
-Every file the baseline writes is either a drop-in under a `.d/` directory or a
-file whose name identifies this repository. The baseline does not rewrite
-distribution-owned files in place, so a Debian package upgrade cannot silently
-revert the baseline and the baseline cannot silently revert a package upgrade.
+Where a drop-in exists, the baseline uses one: the SSH, nftables, journald and
+logrotate configuration lives in `.d/` directories or in files named after this
+repository, so a package upgrade cannot silently revert it. A few settings have
+no drop-in mechanism — the hostname, `/etc/hosts`, the locale files and the APT
+sources — and those are written in place, which is why `os_identity` and
+`apt_sources` are the only roles that can conflict with a package upgrade.
 
 ## 8. Reports
 

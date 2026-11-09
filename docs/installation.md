@@ -17,16 +17,22 @@ Ansible runs on your workstation, not on the server. You need:
 Install the Python toolchain and the collection:
 
 ```bash
-make tools        # uv tool install -r requirements-dev.txt
+make tools        # install the toolchain with uv
 make collections  # ansible-galaxy collection install -r requirements.yml
 ```
 
-`make tools` uses `uv`. If you do not have it, install the three tools with pip
-instead:
+`make tools` reads `requirements-dev.txt` and runs `uv tool install` once per
+entry. Without `uv`, install the same three tools with `pipx`:
 
 ```bash
-pip install --user ansible-core ansible-lint yamllint
+pipx install ansible-core
+pipx install ansible-lint
+pipx install yamllint
 ```
+
+A plain `pip install --user` is refused on distributions that mark Python as
+externally managed, which includes Arch and Debian 12 and later. Use `pipx` or a
+virtualenv there.
 
 ### The server
 

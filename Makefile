@@ -18,8 +18,11 @@ YAMLLINT         := yamllint
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "};{printf "  %-20s %s\n", $$1, $$2}'
 
-tools: ## Install ansible-core, ansible-lint and yamllint with uv
-	uv tool install -r requirements-dev.txt
+tools: ## Install the tools listed in requirements-dev.txt with uv
+	@for tool in $$(grep -vE '^[[:space:]]*(#|$$)' requirements-dev.txt); do \
+		echo "uv tool install $$tool"; \
+		uv tool install "$$tool" || exit 1; \
+	done
 
 collections: ## Install the required Ansible collections
 	ansible-galaxy collection install -r requirements.yml

@@ -14,7 +14,7 @@
 | Firewall input policy | `drop` |
 | Firewall forward policy | `drop` |
 | Firewall output policy | `accept` |
-| Automatic upgrades | Disabled (see `docs/maintenance.md`) |
+| Unattended upgrades | Disabled; `apt_upgrade` applies them at the start of each run (see `docs/maintenance.md`) |
 | Journal | Persistent, bounded |
 
 ## SSH
@@ -62,7 +62,8 @@ idempotent without touching anything else. A unit drop-in replaces Debian's
 `ExecStop`, which runs `nft flush ruleset`, with a statement that removes only
 the baseline table.
 
-The input chain drops by default and accepts:
+The input chain drops by default, drops packets in the `invalid` conntrack
+state, and accepts:
 
 - loopback traffic;
 - established and related connections;

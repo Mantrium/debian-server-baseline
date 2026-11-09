@@ -1,3 +1,5 @@
+# Tools installed by `make tools`, one per line. Blank lines and lines starting
+# with `#` are ignored.
 ansible-core
 ansible-lint
 yamllint

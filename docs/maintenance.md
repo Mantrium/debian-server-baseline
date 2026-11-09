@@ -16,15 +16,16 @@ that was already pending.
 | `APT::Periodic::Unattended-Upgrade` | `0` | Do not apply upgrades |
 | `APT::Periodic::AutocleanInterval` | `7` | Clear the package cache weekly |
 
-The baseline refreshes the index but never installs upgrades by itself. Applying
-upgrades is an operator decision: an unattended upgrade can restart services or
-require a reboot at an unpredictable moment.
+The periodic policy only refreshes the index; it never downloads or installs
+anything. Upgrades are applied by `apt_upgrade` at the start of each
+`baseline.yml` run, which is a deliberate, observable moment rather than an
+unattended one.
 
-To let the baseline apply upgrades on every run instead, set
-`baseline_apt_upgrade_mode: full` for the `apt_upgrade` role. `full` runs
+`apt_upgrade` defaults to `baseline_apt_upgrade_mode: safe`, which runs
+`apt-get upgrade` and never removes a package. Set it to `full` to run
 `apt-get dist-upgrade`, which also applies upgrades that need new or removed
-packages; the default `safe` runs `apt-get upgrade`, which never removes a
-package.
+packages. `baseline_apt_upgrade_autoremove` and `baseline_apt_upgrade_autoclean`
+both default to `false`.
 
 ## Reviewing what an upgrade would do
 

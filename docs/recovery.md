@@ -21,10 +21,12 @@ modify:
 vagrant ssh
 ```
 
-If Vagrant's SSH is also broken, use the serial console:
+If Vagrant's SSH is also broken, use the serial console. The libvirt domain is
+named `<project-directory>_<BASELINE_VM_NAME>`, so list it first:
 
 ```bash
-virsh -c qemu:///system console main
+virsh -c qemu:///system list --all
+virsh -c qemu:///system console infra-server-baseline_main
 # log in as vagrant / vagrant, exit with Ctrl-]
 ```
 
