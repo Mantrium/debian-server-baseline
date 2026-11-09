@@ -33,7 +33,7 @@ On the controller:
 
 On the target: Debian 13 (Trixie).
 
-## Quick start
+## Quick start (local test VM)
 
 ```bash
 # 1. Install the toolchain and the required collection
@@ -51,6 +51,35 @@ make vagrant-up
 # 4. Run the integration tests
 make vagrant-test
 ```
+
+## Production
+
+Production is a direct `ansible-playbook` run against a Debian 13 server.
+Vagrant is never involved. The full walkthrough is `docs/production.md`; in
+short:
+
+```bash
+# On the controller, once
+make tools
+make collections
+cp -n config/user.example.yml config/user.yml
+$EDITOR config/user.yml
+
+# Point the production inventory at the server
+cp -n inventories/production/hosts.example.yml inventories/production/hosts.yml
+cp -n inventories/production/group_vars/all.example.yml inventories/production/group_vars/all.yml
+$EDITOR inventories/production/hosts.yml
+
+# Bootstrap, apply, verify
+ansible-playbook -i inventories/production/hosts.yml playbooks/bootstrap.yml
+ansible-playbook -i inventories/production/hosts.yml playbooks/baseline.yml
+ansible-playbook -i inventories/production/hosts.yml playbooks/verify.yml
+```
+
+The first run installs your key for `admin_username` and then disables password
+authentication and root login, so confirm a new SSH session works before you
+close the current one. `docs/production.md` covers the account Ansible connects
+as, the provider firewall, multiple servers and ongoing operation.
 
 ## Common commands
 
@@ -74,6 +103,7 @@ make vagrant-test
 |---|---|
 |`docs/architecture.md`|Component responsibilities and role separation.|
 |`docs/installation.md`|Prerequisites, bootstrap and first run.|
+|`docs/production.md`|Deploying to a real server: VPS setup, inventory, first run, ongoing operation.|
 |`docs/vagrant.md`|The test environment, box provenance and environment variables.|
 |`docs/configuration.md`|The user configuration file and preflight validation.|
 |`docs/security.md`|SSH, firewall and audit posture.|

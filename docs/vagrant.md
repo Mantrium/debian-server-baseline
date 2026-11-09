@@ -1,7 +1,7 @@
 # Vagrant environment
 
 Vagrant exists only for local development and integration testing. Production
-never uses it; see `docs/installation.md` for the production path.
+never uses it; see `docs/production.md` for the production path.
 
 ## Host prerequisites
 

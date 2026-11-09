@@ -75,6 +75,10 @@ $EDITOR config/user.yml
 
 ## Prepare the production inventory
 
+The end-to-end walkthrough for a real server, including the account Ansible
+connects as and the provider firewall, is `docs/production.md`. The inventory
+itself is:
+
 ```bash
 cp -n inventories/production/hosts.example.yml inventories/production/hosts.yml
 cp -n inventories/production/group_vars/all.example.yml inventories/production/group_vars/all.yml

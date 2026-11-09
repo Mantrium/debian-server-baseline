@@ -4,8 +4,13 @@
 # The authoritative user configuration is config/user.yml; it is read here so
 # that the SSH connection user and private key stay in sync with it. Ansible
 # must therefore be run from the repository root.
+#
+# `template` rather than `file`: config/user.yml may contain a Jinja
+# expression (the documented local configuration uses lookup('env', 'HOME')),
+# and connection variables are not templated recursively. Rendering the file
+# resolves it before it is used as a connection parameter.
 
-baseline_user_config: "{{ lookup('file', 'config/user.yml') | from_yaml }}"
+baseline_user_config: "{{ lookup('template', lookup('env', 'PWD') ~ '/config/user.yml') | from_yaml }}"
 
 ansible_user: "{{ baseline_user_config.admin_username }}"
 ansible_ssh_private_key_file: "{{ baseline_user_config.ssh_public_key_path | regex_replace('\\.pub$', '') }}"

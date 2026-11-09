@@ -64,9 +64,26 @@ exists.
 
 ## `ansible-inventory` cannot resolve the production inventory
 
-The production `group_vars/all.yml` reads `config/user.yml` with
-`lookup('file', ...)`, which is relative to the working directory. Run Ansible
-from the repository root.
+The production `group_vars/all.yml` renders `config/user.yml` with
+`lookup('template', ...)`, which is relative to the working directory. Run
+Ansible from the repository root.
+
+## `Permission denied (publickey)` on the first production run
+
+The inventory connects as `admin_username` from `config/user.yml`. That account
+must already exist on the server and accept your key. On a Debian cloud image
+it is `debian`. If your provider only gives you `root`, set `ansible_user: root`
+on the host in `hosts.yml` for the first run; the baseline creates the
+administrative account and installs the key before it disables root login.
+
+## `Missing sudo password`
+
+The connection account needs passwordless `sudo`, or you must supply the
+password:
+
+```bash
+ansible-playbook -i inventories/production/hosts.yml playbooks/baseline.yml --ask-become-pass
+```
 
 ## `vagrant up` fails with `ignoring_virtual_size_too_small`
 

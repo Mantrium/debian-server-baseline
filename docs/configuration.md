@@ -77,5 +77,8 @@ The `BASELINE_VM_*` environment variables select the Vagrant box, size and
 provider; see `docs/vagrant.md`.
 
 The production inventory derives its connection user and private key from
-`config/user.yml` with `lookup('file', 'config/user.yml')`, so Ansible must be
+`config/user.yml` with `lookup('template', ...)`. It renders the file rather
+than reading it raw, so a Jinja expression such as `lookup('env', 'HOME')` in
+`ssh_public_key_path` is resolved before the value is used as a connection
+parameter; connection variables are not templated recursively. Ansible must be
 run from the repository root when using it.
