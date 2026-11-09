@@ -1,4 +1,4 @@
-# infra-server-baseline
+# debian-server-baseline
 
 A generic, **secure server baseline setup for Debian 13 (Trixie)**, **automated with Ansible** 
 and developed and tested using a local Vagrant/libvirt virtual machine.

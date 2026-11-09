@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: infra-server-baseline contributors
+  author: debian-server-baseline contributors
   description: Validate the user configuration before any baseline role runs.
   license: MIT
   min_ansible_version: "2.16"

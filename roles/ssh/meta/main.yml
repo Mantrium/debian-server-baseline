@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: infra-server-baseline contributors
+  author: debian-server-baseline contributors
   description: Harden the OpenSSH server configuration.
   license: MIT
   min_ansible_version: "2.16"

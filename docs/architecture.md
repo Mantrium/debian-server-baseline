@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-`infra-server-baseline` turns a freshly installed Debian 13 (Trixie) machine
+`debian-server-baseline` turns a freshly installed Debian 13 (Trixie) machine
 into a known-good, hardened server. It is deliberately generic: nothing about a
 particular organisation, hostname or operator is baked into a role.
 

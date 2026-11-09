@@ -26,7 +26,7 @@ named `<project-directory>_<BASELINE_VM_NAME>`, so list it first:
 
 ```bash
 virsh -c qemu:///system list --all
-virsh -c qemu:///system console infra-server-baseline_main
+virsh -c qemu:///system console debian-server-baseline_main
 # log in as vagrant / vagrant, exit with Ctrl-]
 ```
 

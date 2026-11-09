@@ -65,7 +65,7 @@
 - name: Point the legacy sources file at the managed file
   ansible.builtin.copy:
     content: |
-      # Managed by infra-server-baseline: Debian sources are defined in
+      # Managed by debian-server-baseline: Debian sources are defined in
       # /etc/apt/sources.list.d/debian.sources
     dest: "{{ baseline_apt_legacy_sources_file }}"
     owner: root
