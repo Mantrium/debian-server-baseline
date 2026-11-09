@@ -14,7 +14,7 @@
 | Firewall input policy | `drop` |
 | Firewall forward policy | `drop` |
 | Firewall output policy | `accept` |
-| Unattended upgrades | Disabled; `apt_upgrade` applies them at the start of each run (see `docs/maintenance.md`) |
+| Unattended upgrades | Disabled; `apt_upgrade` applies them at the start of each run (see [`docs/maintenance.md`](maintenance.md)) |
 | Journal | Persistent, bounded |
 
 ## SSH

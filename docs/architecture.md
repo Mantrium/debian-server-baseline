@@ -25,7 +25,7 @@ Nothing in this repository runs on the target outside of an Ansible task.
 
 Vagrant is a development convenience only. Production deployment is a direct
 `ansible-playbook` run against the production inventory; Vagrant is never
-required there. See `docs/production.md`.
+required there. See [`docs/production.md`](production.md).
 
 ## 3. Configuration ownership
 

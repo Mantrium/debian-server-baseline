@@ -45,8 +45,8 @@ virtualenv there.
 
 ### The development host (optional)
 
-Only needed for the Vagrant test environment. See `docs/vagrant.md`; the short
-version is:
+Only needed for the Vagrant test environment. See
+[`docs/vagrant.md`](vagrant.md); the short version is:
 
 ```bash
 sudo pacman -S --needed vagrant libvirt qemu-base qemu-system-x86 qemu-img make git
@@ -71,13 +71,14 @@ $EDITOR config/user.yml
 | `ssh_public_key_path` | Path on the controller to the public key to install |
 
 `config/user.yml` is Git-ignored and must never be committed. See
-`docs/configuration.md` for the validation the baseline performs on it.
+[`docs/configuration.md`](configuration.md) for the validation the baseline
+performs on it.
 
 ## Prepare the production inventory
 
 The end-to-end walkthrough for a real server, including the account Ansible
-connects as and the provider firewall, is `docs/production.md`. The inventory
-itself is:
+connects as and the provider firewall, is
+[`docs/production.md`](production.md). The inventory itself is:
 
 ```bash
 cp -n inventories/production/hosts.example.yml inventories/production/hosts.yml
@@ -127,10 +128,10 @@ make vagrant-up
 make vagrant-test
 ```
 
-See `docs/vagrant.md`. Production deployment is a direct `ansible-playbook` run;
-Vagrant is never required there.
+See [`docs/vagrant.md`](vagrant.md). Production deployment is a direct
+`ansible-playbook` run; Vagrant is never required there.
 
 ## Uninstalling
 
 The baseline has no uninstaller: it configures a server rather than installing a
-product. To revert a specific change, see `docs/recovery.md`.
+product. To revert a specific change, see [`docs/recovery.md`](recovery.md).

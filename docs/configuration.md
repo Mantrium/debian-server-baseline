@@ -70,11 +70,11 @@ It publishes two facts for the later roles:
 ## Related variables
 
 `BASELINE_SSH_PORT` (Vagrant) and `baseline_ssh_port` (the `ssh` and `nftables`
-roles) must agree when the SSH port is changed; see `docs/vagrant.md` and
-`docs/security.md`.
+roles) must agree when the SSH port is changed; see
+[`docs/vagrant.md`](vagrant.md) and [`docs/security.md`](security.md).
 
 The `BASELINE_VM_*` environment variables select the Vagrant box, size and
-provider; see `docs/vagrant.md`.
+provider; see [`docs/vagrant.md`](vagrant.md).
 
 The production inventory derives its connection user and private key from
 `config/user.yml` with `lookup('template', ...)`. It renders the file rather

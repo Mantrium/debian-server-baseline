@@ -6,8 +6,9 @@ provider - reached over SSH and configured by `ansible-playbook` from your
 workstation. Nothing from this repository is installed on the server; the only
 prerequisite is Python 3, which `bootstrap.yml` provides.
 
-`docs/installation.md` covers the controller requirements and the meaning of
-every configuration variable. This document is the end-to-end walkthrough.
+[`docs/installation.md`](installation.md) covers the controller requirements
+and the meaning of every configuration variable. This document is the
+end-to-end walkthrough.
 
 ## Before you start
 
@@ -16,7 +17,7 @@ every configuration variable. This document is the end-to-end walkthrough.
 | A Debian 13 (Trixie) server | amd64 or arm64. Any provider that offers a Debian 13 image. |
 | SSH access as an account that can become root | See [The account Ansible connects as](#the-account-ansible-connects-as). |
 | Your SSH key pair on the controller | The public key is installed on the server; the private key never leaves the controller. |
-| The repository and toolchain on the controller | `make tools` and `make collections`; see `docs/installation.md`. |
+| The repository and toolchain on the controller | `make tools` and `make collections`; see [`docs/installation.md`](installation.md). |
 
 ## 1. Create the server
 
@@ -142,7 +143,7 @@ ansible-playbook -i inventories/production/hosts.yml playbooks/security-audit.ym
 ```
 
 `maintenance.yml` reports whether a reboot is required. A kernel update needs
-one; see `docs/maintenance.md`.
+one; see [`docs/maintenance.md`](maintenance.md).
 
 `make verify`, `make maintenance` and `make security-audit` target the Vagrant
 VM. Against production, use the `ansible-playbook` commands above.
@@ -163,7 +164,7 @@ ansible-playbook -i inventories/production/hosts.yml playbooks/baseline.yml \
 ## 8. Recovery
 
 If SSH stops working, use the provider's out-of-band console or rescue system;
-see `docs/recovery.md`.
+see [`docs/recovery.md`](recovery.md).
 
 ## Checklist
 
