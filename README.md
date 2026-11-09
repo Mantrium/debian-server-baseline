@@ -1,11 +1,11 @@
 # infra-server-baseline
 
-A generic, publicly reusable **Debian 13 (Trixie) server baseline**, managed by
-Ansible and developed against a local Vagrant/libvirt virtual machine.
+A generic, **secure server baseline setup for Debian 13 (Trixie)**, **automated with Ansible** 
+and developed and tested using a local Vagrant/libvirt virtual machine.
 
-The repository is deliberately free of any operator-specific value: hostname,
-administrative account, timezone and SSH key path all come from a Git-ignored
-`config/user.yml` that each operator creates from the tracked example.
+Operator-specific values, including the hostname, user, 
+timezone, and SSH key path, are defined in a Git-ignored 
+`config/user.yml` file that each operator creates from the tracked example.
 
 ## What it does
 
