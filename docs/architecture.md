@@ -3,9 +3,8 @@
 ## 1. Purpose
 
 `infra-server-baseline` turns a freshly installed Debian 13 (Trixie) machine
-into a known-good, hardened server. It is Phase 1 of the Mantrium
-infrastructure project and is deliberately generic: nothing about a particular
-organisation, hostname or operator is baked into a role.
+into a known-good, hardened server. It is deliberately generic: nothing about a
+particular organisation, hostname or operator is baked into a role.
 
 The repository has three jobs:
 
@@ -75,8 +74,8 @@ Each role owns one concern and one set of files.
 | `storage_checks` | `/var/log/server-baseline/storage.txt` | Report only |
 | `verification` | Assertions over the applied baseline | No |
 
-The four reporting roles (`service_audit`, `kernel_status`, `storage_checks`,
-`verification`) never change system state. They exist so that the state of a
+The three reporting roles (`service_audit`, `kernel_status`, `storage_checks`)
+and `verification` never change system state. They exist so that the state of a
 server can be captured and checked without logging in interactively.
 
 ## 5. Playbooks
@@ -156,25 +155,17 @@ Reports are written to `/var/log/server-baseline/` as plain text, mode
 Reports are regenerated on every run. They are the intended input for a human
 reviewing a server, and for the integration tests.
 
-## 9. Boundary with `infra-hosting-platform`
+## 9. Extending the baseline
 
 This repository stops at a hardened, observable, generic Debian 13 host. It
-does not install or configure any hosting workload.
+does not install or configure any hosting workload: web servers, databases,
+container runtimes, TLS material and application deployment all belong to
+whatever is layered on top.
 
-`infra-hosting-platform` (Phase 2) is a separate repository that builds on this
-baseline. It owns everything specific to hosting: web servers, databases,
-container runtimes, TLS material, application deployment and per-tenant
-configuration.
-
-The interface between the two is the baseline itself:
-
-- `infra-hosting-platform` may assume the baseline roles have run.
-- It may add roles; it must not modify baseline roles.
-- It must not depend on any value that is not either in `config/user.yml` or
-  produced by a baseline role.
-
-Keeping the boundary here means the baseline stays reusable by anyone, and the
-hosting platform can evolve without re-testing the baseline.
+Anything layered on top should add roles rather than modify baseline roles, and
+should depend only on values from `config/user.yml` or values produced by a
+baseline role. Keeping the boundary here means the baseline stays reusable by
+anyone, and a layered repository can evolve without re-testing it.
 
 ## 10. Design rules
 

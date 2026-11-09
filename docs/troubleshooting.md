@@ -52,7 +52,7 @@ such as `Europe/Berlin`.
 ## `SSH public key is missing or invalid`
 
 `ssh_public_key_path` must point at a readable, non-empty public key file on the
-controller, and the matching private key must exist next to it. The Mantrium
+controller, and the matching private key must exist next to it. The example
 configuration resolves the path with `lookup('env', 'HOME')`, so Ansible must be
 run from the repository root.
 

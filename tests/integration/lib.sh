@@ -50,7 +50,7 @@ user_config() {
 }
 
 # user_config_resolved <key> - read a scalar from config/user.yml with any
-# Jinja expression resolved. The Mantrium configuration stores the SSH key path
+# Jinja expression resolved. The example configuration stores the SSH key path
 # as "{{ lookup('env', 'HOME') }}/.ssh/id_ed25519.pub", so the raw value is not
 # a usable path.
 user_config_resolved() {

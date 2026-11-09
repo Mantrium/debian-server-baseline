@@ -12,6 +12,7 @@ administrative account, timezone and SSH key path all come from a Git-ignored
 |Area|Behaviour|
 |---|---|
 |Identity|Hostname, timezone, locale and `/etc/hosts` entry.|
+|Updates|The package index is refreshed and pending upgrades are applied before anything else is configured.|
 |APT|Debian 13 `deb822` sources, periodic update policy, review packages.|
 |Packages|A curated base, security, maintenance, network and monitoring set.|
 |Access|Administrative account in `sudo` with the operator's public key installed.|

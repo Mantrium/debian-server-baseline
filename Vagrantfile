@@ -50,8 +50,8 @@ Vagrant.configure('2') do |config|
     #
     # Vagrant's Debian capability writes only the first label of vm.hostname
     # (name.split(".", 2)[0]) and re-applies it on every `up` and `reload`, so
-    # an FQDN such as mantrium.io would silently become mantrium and would
-    # revert after a reboot. Disabling the modification keeps one owner.
+    # an FQDN such as server.example.com would silently become server and
+    # would revert after a reboot. Disabling the modification keeps one owner.
     vm.vm.allow_hosts_modification = false
 
     # The repository is not shared into the guest; Ansible runs from the host.

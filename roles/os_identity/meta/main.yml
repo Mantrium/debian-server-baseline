@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Mantrium
+  author: infra-server-baseline contributors
   description: Set the hostname, timezone and locale of the target.
   license: MIT
   min_ansible_version: "2.16"
