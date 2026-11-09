@@ -55,8 +55,8 @@ make vagrant-test
 ## Production
 
 Production is a direct `ansible-playbook` run against a Debian 13 server.
-Vagrant is never involved. The full walkthrough is `docs/production.md`; in
-short:
+Vagrant is never involved. The full walkthrough is
+[`docs/production.md`](docs/production.md); in short:
 
 ```bash
 # On the controller, once
@@ -78,8 +78,9 @@ ansible-playbook -i inventories/production/hosts.yml playbooks/verify.yml
 
 The first run installs your key for `admin_username` and then disables password
 authentication and root login, so confirm a new SSH session works before you
-close the current one. `docs/production.md` covers the account Ansible connects
-as, the provider firewall, multiple servers and ongoing operation.
+close the current one. [`docs/production.md`](docs/production.md) covers the
+account Ansible connects as, the provider firewall, multiple servers and
+ongoing operation.
 
 ## Common commands
 
@@ -101,15 +102,15 @@ as, the provider firewall, multiple servers and ongoing operation.
 
 |Document|Contents|
 |---|---|
-|`docs/architecture.md`|Component responsibilities and role separation.|
-|`docs/installation.md`|Prerequisites, bootstrap and first run.|
-|`docs/production.md`|Deploying to a real server: VPS setup, inventory, first run, ongoing operation.|
-|`docs/vagrant.md`|The test environment, box provenance and environment variables.|
-|`docs/configuration.md`|The user configuration file and preflight validation.|
-|`docs/security.md`|SSH, firewall and audit posture.|
-|`docs/maintenance.md`|Update workflow, kernel updates and reboots.|
-|`docs/recovery.md`|Recovering access to a locked-out host.|
-|`docs/troubleshooting.md`|Common failures and their resolutions.|
+|[`docs/architecture.md`](docs/architecture.md)|Component responsibilities and role separation.|
+|[`docs/installation.md`](docs/installation.md)|Prerequisites, bootstrap and first run.|
+|[`docs/production.md`](docs/production.md)|Deploying to a real server: VPS setup, inventory, first run, ongoing operation.|
+|[`docs/vagrant.md`](docs/vagrant.md)|The test environment, box provenance and environment variables.|
+|[`docs/configuration.md`](docs/configuration.md)|The user configuration file and preflight validation.|
+|[`docs/security.md`](docs/security.md)|SSH, firewall and audit posture.|
+|[`docs/maintenance.md`](docs/maintenance.md)|Update workflow, kernel updates and reboots.|
+|[`docs/recovery.md`](docs/recovery.md)|Recovering access to a locked-out host.|
+|[`docs/troubleshooting.md`](docs/troubleshooting.md)|Common failures and their resolutions.|
 
 ## Licence
 
