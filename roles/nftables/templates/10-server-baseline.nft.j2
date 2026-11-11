@@ -14,6 +14,9 @@ destroy table inet {{ baseline_firewall_table }}
 table inet {{ baseline_firewall_table }} {
 	chain input {
 		type filter hook input priority filter; policy {{ baseline_firewall_default_input_policy }};
+{% if baseline_firewall_block_ipv6 | bool %}
+		meta nfproto ipv6 counter drop
+{% endif %}
 		iif lo accept
 		ct state established,related accept
 		ct state invalid drop
@@ -40,6 +43,9 @@ table inet {{ baseline_firewall_table }} {
 
 	chain forward {
 		type filter hook forward priority filter; policy {{ baseline_firewall_forward_policy }};
+{% if baseline_firewall_block_ipv6 | bool %}
+		meta nfproto ipv6 counter drop
+{% endif %}
 		ct state invalid drop
 		ct state established,related accept
 		include "{{ baseline_firewall_forward_dropin_dir }}/*.nft"
@@ -47,5 +53,8 @@ table inet {{ baseline_firewall_table }} {
 
 	chain output {
 		type filter hook output priority filter; policy {{ baseline_firewall_default_output_policy }};
+{% if baseline_firewall_block_ipv6 | bool %}
+		meta nfproto ipv6 counter drop
+{% endif %}
 	}
 }

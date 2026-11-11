@@ -45,6 +45,32 @@
       '{{ admin_username }}' is not a valid value. server_hostname must be a
       DNS-style name and admin_username must match ^[a-z_][a-z0-9_-]*$.
 
+- name: Assert baseline_firewall_block_ipv6 is a boolean
+  ansible.builtin.assert:
+    that:
+      - baseline_firewall_block_ipv6 | default(false) | type_debug == 'bool'
+    fail_msg: >-
+      baseline_firewall_block_ipv6 must be a YAML boolean, not
+      '{{ baseline_firewall_block_ipv6 | default(false) }}'
+      ({{ baseline_firewall_block_ipv6 | default(false) | type_debug }}). Write
+      'baseline_firewall_block_ipv6: false' or
+      'baseline_firewall_block_ipv6: true' in {{ baseline_user_config_path }};
+      on the command line use -e '{"baseline_firewall_block_ipv6": true}'.
+    success_msg: "baseline_firewall_block_ipv6: {{ baseline_firewall_block_ipv6 | default(false) }}"
+
+- name: Assert IPv6 blocking is not requested while the firewall is disabled
+  ansible.builtin.assert:
+    that:
+      - >-
+        not (baseline_firewall_block_ipv6 | default(false) | bool)
+        or (baseline_firewall_enabled | default(true) | bool)
+    fail_msg: >-
+      baseline_firewall_block_ipv6 is true but baseline_firewall_enabled is
+      false. The baseline firewall is not configured, so IPv6 blocking would
+      not be enforced. Set baseline_firewall_enabled to true, or
+      baseline_firewall_block_ipv6 to false.
+    success_msg: "IPv6 blocking and the baseline firewall are consistent."
+
 - name: Check whether the configured timezone exists on the target
   ansible.builtin.stat:
     path: "/usr/share/zoneinfo/{{ server_timezone }}"

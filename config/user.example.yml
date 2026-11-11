@@ -3,3 +3,8 @@ server_hostname: myserver
 admin_username: admin
 server_timezone: Etc/UTC
 ssh_public_key_path: /home/user/.ssh/id_ed25519.pub
+
+# Block IPv6 at the host nftables firewall (input, forward and output). The
+# kernel IPv6 stack is left untouched; only the firewall drops IPv6 packets.
+# Must be a YAML boolean. See docs/firewall-extensions.md.
+baseline_firewall_block_ipv6: false

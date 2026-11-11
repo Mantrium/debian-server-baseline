@@ -22,6 +22,12 @@ baseline_firewall_udp_ports: []
 baseline_firewall_input_dropin_dir: /etc/nftables.d/input
 baseline_firewall_forward_dropin_dir: /etc/nftables.d/forward
 
+# Drop IPv6 at the host firewall's input, forward and output hooks.
+#
+# This is a firewall policy only: the kernel IPv6 stack is left untouched.
+# The default preserves the existing dual-stack firewall behaviour.
+baseline_firewall_block_ipv6: false
+
 baseline_firewall_default_input_policy: drop
 baseline_firewall_default_output_policy: accept
 baseline_firewall_forward_policy: drop

@@ -225,6 +225,55 @@
     fail_msg: "One or more baseline reports are missing from {{ baseline_verification_report_dir }}."
     success_msg: "Reports: {{ baseline_verification_reports | join(', ') }}"
 
+- name: Check the firewall extension directories
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ baseline_verification_firewall_input_dropin_dir }}"
+    - "{{ baseline_verification_firewall_forward_dropin_dir }}"
+  loop_control:
+    label: "{{ item }}"
+  register: baseline_verification_firewall_dirs
+
+- name: Assert the firewall extension directories exist
+  ansible.builtin.assert:
+    that:
+      - >-
+        baseline_verification_firewall_dirs.results
+        | selectattr('stat.isdir', 'eq', false) | list | length == 0
+    fail_msg: "A firewall extension directory is missing; the nftables role creates them."
+    success_msg: "Firewall extension directories: present"
+
+- name: Read the baseline firewall chains
+  ansible.builtin.command:
+    cmd: "nft -s list chain inet {{ baseline_verification_firewall_table }} {{ item }}"
+  loop:
+    - input
+    - forward
+    - output
+  loop_control:
+    label: "{{ item }}"
+  register: baseline_verification_firewall_chains
+  changed_when: false
+
+- name: Assert the IPv6 blocking policy matches the configuration
+  ansible.builtin.assert:
+    that:
+      - >-
+        (item.stdout is search('type filter hook[^\n]*\n[ \t]*meta nfproto ipv6 counter[^\n]*drop'))
+        == (baseline_verification_firewall_block_ipv6 | bool)
+    fail_msg: >-
+      The {{ item.item }} chain does not match baseline_firewall_block_ipv6
+      ({{ baseline_verification_firewall_block_ipv6 }}): the IPv6 drop rule must
+      be the first rule of the chain when blocking is enabled, and absent when
+      it is disabled.
+    success_msg: >-
+      IPv6 blocking on the {{ item.item }} chain:
+      {{ baseline_verification_firewall_block_ipv6 }}
+  loop: "{{ baseline_verification_firewall_chains.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
 - name: Report the verification summary
   ansible.builtin.debug:
     msg: >-
