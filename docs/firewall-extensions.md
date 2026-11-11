@@ -45,9 +45,8 @@ to forward.
 
 ## 4. How a layer on top consumes them
 
-Phase 1 (this repository) creates the directories, the includes, the table, the
-policies and the IPv6 drop rules (on by default). Phase 2 creates and manages
-the fragments:
+This repository creates the directories, the includes, the table and the
+policies; the layer on top creates and manages the fragments:
 
 ```text
 /etc/nftables.d/
@@ -55,10 +54,10 @@ the fragments:
 ├── 10-server-baseline.nft
 │
 ├── input/
-│   └── 50-incus-host-services.nft
+│   └── 50-example-service.nft
 │
 └── forward/
-    └── 50-incus-ovn.nft
+    └── 50-example-forwarding.nft
 ```
 
 Rules for a fragment:
@@ -68,11 +67,8 @@ Rules for a fragment:
   error, because the fragment is parsed as part of the chain body.
 - A wildcard include with no matches is not an error, so the directories may be
   empty.
-- Phase 1 preserves externally managed fragments when it reapplies the baseline:
-  the directory task uses `state: directory`, which never removes files.
-
-Phase 1 contains no Incus or OVN configuration. The actual Phase 2 rules must be
-determined by testing the final OVN topology and packet paths.
+- The baseline preserves externally managed fragments when it reapplies: the
+  directory task uses `state: directory`, which never removes files.
 
 ## 5. `baseline_firewall_block_ipv6`
 
@@ -115,40 +111,7 @@ baseline_firewall_block_ipv6: false
 Set it to `false` and re-run `playbooks/baseline.yml`. The drop rules are
 removed with the rest of the table, again without a reboot.
 
-## 8. Firewall blocking versus kernel-level disablement
-
-This is a firewall policy, not a kernel change. With
-`baseline_firewall_block_ipv6: true` (the default):
-
-- IPv6 is dropped at the input, forward and output hooks of the host firewall;
-- provider-assigned IPv6 addresses are **not** removed, and `ip -6 addr show`
-  still lists them;
-- `net.ipv6.conf.*` is **not** changed, and no IPv6-disablement sysctl file is
-  added under `/etc/sysctl.d/`;
-- GRUB and the kernel command line are **not** touched, so `ipv6.disable=1` is
-  never added;
-- the kernel IPv6 stack stays enabled, and `/proc/net/if_inet6` stays present.
-
-The kernel IPv6 stack, the sysctls, GRUB, the kernel command line, the provider
-network configuration and the Vagrantfile are all out of scope for this feature.
-
-## 9. Why Vagrant and the Linux IPv6 configuration are unchanged
-
-The feature is a firewall policy, so the Vagrantfile, the libvirt networking and
-the guest's IPv6 stack are untouched. The integration test asserts this: it
-compares the IPv6 sysctls, the kernel command line and the contents of
-`/etc/sysctl.d/` before and after the toggle, and checks that `git diff` reports
-no change to the Vagrantfile.
-
-## 10. Why OVN still needs its own IPv4-only policy
-
-OVN can switch traffic inside its logical datapath without every packet
-traversing the host's ordinary nftables IP forwarding chain, so host firewall
-rules are not a substitute for OVN ACLs. A layer on top must configure
-IPv4-only OVN networks and deny IPv6 within tenant networking; blocking IPv6 at
-the host firewall does not cover the logical datapath.
-
-## 11. IPv6 loopback is blocked too
+## 8. IPv6 loopback is blocked too
 
 The output chain drops IPv6 before any other rule, so `::1` is blocked as well.
 Applications on the host must use `127.0.0.1` or an explicitly configured IPv4
