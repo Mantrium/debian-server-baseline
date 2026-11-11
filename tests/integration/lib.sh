@@ -112,3 +112,41 @@ finish() {
   printf '\n%s: %d checks, %d failed\n' "$(basename "$0")" "$baseline_checks" "$baseline_failures"
   [ "$baseline_failures" -eq 0 ]
 }
+
+# baseline_apply [extra ansible-playbook arguments] - apply playbooks/baseline.yml
+# to the Vagrant guest and print the PLAY RECAP line for the host.
+baseline_apply() {
+  local out
+  out="$(make baseline EXTRA_VARS="$*" 2>&1)" || {
+    printf '%s\n' "$out" >&2
+    return 1
+  }
+  printf '%s\n' "$out" | grep -E '^[a-z0-9_-]+ +: ok=' | tail -n 1
+}
+
+# guest_reboot - reboot the guest and wait until it is reachable again.
+# Returns non-zero if it does not come back.
+guest_reboot() {
+  guest 'sudo reboot' >/dev/null 2>&1 || true
+
+  # `sudo reboot` returns before the machine stops, so wait for it to go down
+  # first; otherwise the caller's checks run against the pre-reboot system.
+  for _ in $(seq 1 60); do
+    guest 'true' >/dev/null 2>&1 || break
+    sleep 2
+  done
+
+  for _ in $(seq 1 90); do
+    if guest 'true' >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+# first_rule <chain> - the first rule of a chain in the baseline table, or the
+# chain's closing brace when the chain has no rules.
+first_rule() {
+  guest_root "nft -s list chain inet $table $1" | sed -n '/type filter hook/{n;p;q}'
+}

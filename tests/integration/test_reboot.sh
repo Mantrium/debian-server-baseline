@@ -11,27 +11,8 @@ private_key="${public_key%.pub}"
 
 before_boot="$(guest 'cat /proc/sys/kernel/random/boot_id')"
 
-guest 'sudo reboot' >/dev/null 2>&1 || true
-
-# Wait for the guest to go down. `sudo reboot` returns before the machine
-# actually stops, so without this the checks below would run against the
-# pre-reboot system.
-for _ in $(seq 1 60); do
-  if ! guest 'true' >/dev/null 2>&1; then
-    break
-  fi
-  sleep 2
-done
-
-# Wait for it to come back.
 ready=0
-for _ in $(seq 1 90); do
-  if guest 'true' >/dev/null 2>&1; then
-    ready=1
-    break
-  fi
-  sleep 2
-done
+guest_reboot && ready=1
 assert_eq "the guest is reachable after the reboot" "1" "$ready"
 
 after_boot="$(guest 'cat /proc/sys/kernel/random/boot_id')"

@@ -13,7 +13,7 @@ YAMLLINT         := yamllint
 
 .PHONY: help tools collections check-host vagrant-up vagrant-provision \
         vagrant-ssh vagrant-reload vagrant-status vagrant-destroy vagrant-test \
-        bootstrap syntax-check lint test verify maintenance security-audit clean
+        bootstrap baseline syntax-check lint test verify maintenance security-audit clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "};{printf "  %-20s %s\n", $$1, $$2}'
@@ -55,6 +55,10 @@ bootstrap: ## Run playbooks/bootstrap.yml against the Vagrant VM
 	@test -f $(VAGRANT_ENV) || scripts/vagrant-inventory.sh
 	set -a; . $(VAGRANT_ENV); set +a; $(ANSIBLE_PLAYBOOK) -i $(VAGRANT_INVENTORY) playbooks/bootstrap.yml
 
+baseline: ## Run playbooks/baseline.yml against the Vagrant VM (EXTRA_VARS=...)
+	@test -f $(VAGRANT_ENV) || scripts/vagrant-inventory.sh
+	set -a; . $(VAGRANT_ENV); set +a; $(ANSIBLE_PLAYBOOK) -i $(VAGRANT_INVENTORY) playbooks/baseline.yml $(EXTRA_VARS)
+
 syntax-check: ## ansible-playbook --syntax-check on every playbook
 	@for p in playbooks/*.yml; do echo "== $$p"; $(ANSIBLE_PLAYBOOK) --syntax-check -i $(VAGRANT_INVENTORY) "$$p" || exit 1; done
 
@@ -65,9 +69,9 @@ lint: ## ansible-lint and yamllint
 test: ## Run the integration test suite against the Vagrant VM
 	scripts/vagrant-test.sh
 
-verify: ## Run playbooks/verify.yml against the Vagrant VM
+verify: ## Run playbooks/verify.yml against the Vagrant VM (EXTRA_VARS=...)
 	@test -f $(VAGRANT_ENV) || scripts/vagrant-inventory.sh
-	set -a; . $(VAGRANT_ENV); set +a; $(ANSIBLE_PLAYBOOK) -i $(VAGRANT_INVENTORY) playbooks/verify.yml
+	set -a; . $(VAGRANT_ENV); set +a; $(ANSIBLE_PLAYBOOK) -i $(VAGRANT_INVENTORY) playbooks/verify.yml $(EXTRA_VARS)
 
 maintenance: ## Generate the maintenance report
 	@test -f $(VAGRANT_ENV) || scripts/vagrant-inventory.sh
