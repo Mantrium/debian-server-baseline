@@ -159,3 +159,29 @@ Re-run `make vagrant-provision` and then `make verify`.
 `ansible-lint` and `yamllint` both run. `yamllint` reads `.yamllint`, which
 sets a 120 character line limit; wrap long Jinja expressions with a folded
 scalar (`>-`), which preserves the value's type.
+
+## `baseline_firewall_block_ipv6 must be a YAML boolean`
+
+The value must be an unquoted `true` or `false`:
+
+```yaml
+baseline_firewall_block_ipv6: true
+```
+
+`-e baseline_firewall_block_ipv6=true` produces the *string* `"true"`, which
+preflight rejects. Use a YAML file or the JSON form instead:
+
+```bash
+ansible-playbook -i inventories/vagrant/hosts.yml playbooks/baseline.yml \
+  -e '{"baseline_firewall_block_ipv6": true}'
+ansible-playbook -i inventories/vagrant/hosts.yml playbooks/baseline.yml \
+  -e @tests/fixtures/firewall-block-ipv6.yml
+```
+
+## `baseline_firewall_block_ipv6 is true but baseline_firewall_enabled is false`
+
+The two settings contradict each other: with `baseline_firewall_enabled: false`
+the role does not configure the firewall at all, so the IPv6 drop rules would
+never be installed and the operator would believe IPv6 was blocked when it was
+not. Either set `baseline_firewall_enabled: true`, or set
+`baseline_firewall_block_ipv6: false`.

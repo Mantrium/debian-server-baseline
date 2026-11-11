@@ -18,6 +18,8 @@ timezone, and SSH key path, are defined in a Git-ignored
 |Access|Administrative account in `sudo` with the operator's public key installed.|
 |SSH|Key-only authentication, no root login, hardened effective configuration.|
 |Firewall|nftables default-deny inbound, preserving unrelated tables.|
+|Firewall extensions|Input and forward drop-in directories for layers on top.|
+|IPv6 firewall|Permitted by default; blocked with `baseline_firewall_block_ipv6`.|
 |Logging|Persistent journald storage and log rotation.|
 |Diagnostics|Read-only service, kernel and storage reports under `/var/log/server-baseline/`.|
 |Verification|An assertion role that fails the run when the baseline is not in place.|
@@ -91,7 +93,8 @@ ongoing operation.
 |`make vagrant-provision`|Re-run the Ansible provisioners.|
 |`make vagrant-ssh`|Open an SSH session to the VM.|
 |`make vagrant-test`|Run the integration test suite.|
-|`make verify`|Run `playbooks/verify.yml`.|
+|`make baseline`|Run `playbooks/baseline.yml`; `EXTRA_VARS=...` passes extra variables, for example `EXTRA_VARS='-e @tests/fixtures/firewall-block-ipv6.yml'`.|
+|`make verify`|Run `playbooks/verify.yml`; `EXTRA_VARS=...` passes extra variables.|
 |`make maintenance`|Generate the maintenance report.|
 |`make security-audit`|Generate the security audit report.|
 |`make lint`|`ansible-lint` and `yamllint`.|
@@ -108,6 +111,7 @@ ongoing operation.
 |[`docs/vagrant.md`](docs/vagrant.md)|The test environment, box provenance and environment variables.|
 |[`docs/configuration.md`](docs/configuration.md)|The user configuration file and preflight validation.|
 |[`docs/security.md`](docs/security.md)|SSH, firewall and audit posture.|
+|[`docs/firewall-extensions.md`](docs/firewall-extensions.md)|Firewall extension points and the IPv6 blocking policy.|
 |[`docs/maintenance.md`](docs/maintenance.md)|Update workflow, kernel updates and reboots.|
 |[`docs/recovery.md`](docs/recovery.md)|Recovering access to a locked-out host.|
 |[`docs/troubleshooting.md`](docs/troubleshooting.md)|Common failures and their resolutions.|

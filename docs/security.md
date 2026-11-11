@@ -14,6 +14,7 @@
 | Firewall input policy | `drop` |
 | Firewall forward policy | `drop` |
 | Firewall output policy | `accept` |
+| IPv6 firewall policy | Permitted unless `baseline_firewall_block_ipv6` is true |
 | Unattended upgrades | Disabled; `apt_upgrade` applies them at the start of each run (see [`docs/maintenance.md`](maintenance.md)) |
 | Journal | Persistent, bounded |
 
@@ -60,7 +61,10 @@ created by other tools or providers survive.
 The table is destroyed and recreated on every run, which makes the file
 idempotent without touching anything else. A unit drop-in replaces Debian's
 `ExecStop`, which runs `nft flush ruleset`, with a statement that removes only
-the baseline table.
+the baseline table. When the rendered table changes, the role loads it
+immediately with `nft -f`, so a changed policy takes effect without a reboot and
+without restarting the unit; the file is loaded as a single transaction, so the
+table is never briefly absent.
 
 The input chain drops by default, drops packets in the `invalid` conntrack
 state, and accepts:
@@ -71,6 +75,39 @@ state, and accepts:
 - the DHCP client exchange;
 - the configured SSH port, from the CIDRs in
   `baseline_firewall_ssh_ipv4_cidrs` and `baseline_firewall_ssh_ipv6_cidrs`.
+
+The input and forward chains end with an include of an extension directory:
+
+|Chain|Include|Placement|
+|---|---|---|
+|input|`/etc/nftables.d/input/*.nft`|Last statement of the chain, after the baseline's own accept rules, so a fragment can never bypass the default-drop policy.|
+|forward|`/etc/nftables.d/forward/*.nft`|Last statement of the chain, after its conntrack rules.|
+
+The forward chain drops invalid and accepts established/related connections
+before the include, so a fragment only has to accept the initiating direction of
+the traffic it forwards. A fragment contains rule statements only; a table or
+chain declaration in it is a syntax error, because the fragment is parsed as
+part of the enclosing chain body. The role creates both directories as
+`root:root 0755` and never removes files from them, so externally managed
+fragments survive a re-apply. See
+[`docs/firewall-extensions.md`](firewall-extensions.md).
+
+### IPv6 policy
+
+`baseline_firewall_block_ipv6` (default `false`) makes the host firewall drop
+IPv6 at the input, forward and output hooks. The drop rule is the first rule of
+each of the three chains — ahead of loopback, conntrack, invalid-state,
+ICMP/ICMPv6, DHCP, the SSH allowlist, the port allowances and the input include
+— and it carries a `counter`, so drops are observable with
+`nft list chain inet baseline_filter input`. No `log` statement is added, so
+blocked IPv6 cannot fill the journal. The default preserves the existing
+dual-stack behaviour.
+
+This is a firewall policy, not a kernel change: the kernel IPv6 stack, the
+`net.ipv6.conf.*` sysctls, GRUB and the kernel command line are untouched, and
+provider-assigned IPv6 addresses stay on the interfaces. IPv6 loopback is
+blocked too, so host applications must use `127.0.0.1` rather than `::1` while
+blocking is enabled.
 
 To open more ports, set `baseline_firewall_tcp_ports` or
 `baseline_firewall_udp_ports`. To restrict SSH to a management network, narrow

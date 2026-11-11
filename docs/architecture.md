@@ -66,7 +66,7 @@ Each role owns one concern and one set of files.
 | `base_packages` | The baseline package set | Yes |
 | `users` | The administrative user and its `authorized_keys` | Yes |
 | `ssh` | `/etc/ssh/sshd_config.d/00-server-baseline.conf` | Yes |
-| `nftables` | `/etc/nftables.conf`, `/etc/nftables.d/`, the unit drop-in | Yes |
+| `nftables` | `/etc/nftables.conf`, `/etc/nftables.d/`, the input and forward extension directories, the unit drop-in, `baseline_firewall_block_ipv6` | Yes |
 | `journald` | `/etc/systemd/journald.conf.d/`, `/var/log/journal` | Yes |
 | `logrotate` | `/etc/logrotate.d/server-baseline` | Yes |
 | `service_audit` | `/var/log/server-baseline/service-audit.txt` | Report only |
@@ -130,6 +130,7 @@ mistake cannot lock the operator out of an unhardened daemon.
 | `/etc/apt/apt.conf.d/20auto-upgrades` | `apt_maintenance` |
 | `/etc/ssh/sshd_config.d/00-server-baseline.conf` | `ssh` |
 | `/etc/nftables.conf`, `/etc/nftables.d/10-server-baseline.nft` | `nftables` |
+| `/etc/nftables.d/input/`, `/etc/nftables.d/forward/` | `nftables` creates them; the fragments inside belong to the layer on top |
 | `/etc/systemd/system/nftables.service.d/10-server-baseline.conf` | `nftables` |
 | `/etc/systemd/journald.conf.d/10-server-baseline.conf` | `journald` |
 | `/var/log/journal` | `journald` |
@@ -170,6 +171,25 @@ Anything layered on top should add roles rather than modify baseline roles, and
 should depend only on values from `config/user.yml` or values produced by a
 baseline role. Keeping the boundary here means the baseline stays reusable by
 anyone, and a layered repository can evolve without re-testing it.
+
+The firewall is the one place where the baseline offers an extension point
+instead of only a boundary. The `nftables` role creates
+`/etc/nftables.d/input/` and `/etc/nftables.d/forward/` and includes them from
+inside its input and forward chains, so a layer on top adds rules by dropping
+`.nft` fragments into them. See
+[`docs/firewall-extensions.md`](firewall-extensions.md).
+
+### Phase 1 and Phase 2
+
+|Phase|Owns|
+|---|---|
+|Phase 1 (this repository)|The baseline, the firewall table and policies, the extension points, the optional IPv6 blocking policy.|
+|Phase 2 (the hosting platform)|Incus, OVN, OVN ACLs, Incus-specific firewall rules and hosting services.|
+
+Phase 2 consumes Phase 1 as a pinned, version-controlled dependency and never
+copies or modifies its roles. It owns the fragments under
+`/etc/nftables.d/input/` and `/etc/nftables.d/forward/`; Phase 1 only creates the
+directories and preserves their contents.
 
 ## 10. Design rules
 

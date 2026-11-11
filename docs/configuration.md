@@ -4,7 +4,7 @@ Every user-specific setting lives in a single Git-ignored file, `config/user.yml
 The repository itself contains no hostname, no account name, no timezone and no
 key path that belongs to a particular operator.
 
-## The four variables
+## The user variables
 
 |Variable|Meaning|Example|
 |---|---|---|
@@ -12,9 +12,12 @@ key path that belongs to a particular operator.
 |`admin_username`|The administrative account created on the target and added to `sudo`.|`admin`|
 |`server_timezone`|The system timezone, as a name valid under `/usr/share/zoneinfo`.|`Etc/UTC`|
 |`ssh_public_key_path`|Path **on the controller** to the public key installed for `admin_username`.|`/home/user/.ssh/id_ed25519.pub`|
+|`baseline_firewall_block_ipv6`|Optional. Block IPv6 at the host firewall; see [`docs/firewall-extensions.md`](firewall-extensions.md). Must be a YAML boolean. Defaults to `false`.|`false`|
 
-These four variables are the only authoritative source for those values. No role
-default restates them.
+The first four variables are the only authoritative source for those values. No
+role default restates them. `baseline_firewall_block_ipv6` is optional: it may
+be absent from `config/user.yml`, in which case the `nftables` role default
+(`false`) applies.
 
 ## Copy workflow
 
@@ -43,10 +46,12 @@ ssh_public_key_path: "{{ lookup('env', 'HOME') }}/.ssh/id_ed25519.pub"
 3. asserts that all four variables are defined and non-empty;
 4. asserts that `server_hostname` is a DNS-style name and `admin_username`
    matches `^[a-z_][a-z0-9_-]*$`;
-5. asserts that `/usr/share/zoneinfo/<server_timezone>` exists on the target;
-6. reads the public key, asserts it is a recognised key type, and derives the
+5. asserts that `baseline_firewall_block_ipv6`, when set, is a YAML boolean, and
+   that it is not `true` while `baseline_firewall_enabled` is `false`;
+6. asserts that `/usr/share/zoneinfo/<server_timezone>` exists on the target;
+7. reads the public key, asserts it is a recognised key type, and derives the
    matching private key path by stripping a trailing `.pub`;
-7. asserts that the private key exists on the controller, because the
+8. asserts that the private key exists on the controller, because the
    integration tests authenticate with it.
 
 It publishes two facts for the later roles:
@@ -64,8 +69,32 @@ It publishes two facts for the later roles:
 |A required variable missing or empty|Fails naming the variable and the file.|
 |`server_hostname` or `admin_username` malformed|Fails with the accepted pattern.|
 |`server_timezone` not present under `/usr/share/zoneinfo`|Fails naming the timezone.|
+|`baseline_firewall_block_ipv6` not a YAML boolean|Fails naming the variable, its type and the accepted forms.|
+|`baseline_firewall_block_ipv6: true` with `baseline_firewall_enabled: false`|Fails explaining that the firewall is not configured, so the blocking would not be enforced.|
 |Public key missing, empty, a directory, or not a recognised key type|Fails with the key path.|
 |Matching private key absent|Fails naming the private key path.|
+
+## Firewall IPv6 blocking
+
+`baseline_firewall_block_ipv6` is the one optional user variable. It is a YAML
+boolean and defaults to `false`; see
+[`docs/firewall-extensions.md`](firewall-extensions.md) for the full reference.
+
+```yaml
+# Preserve the existing dual-stack firewall behaviour.
+baseline_firewall_block_ipv6: false
+```
+
+```yaml
+# Block IPv6 at the host firewall.
+baseline_firewall_block_ipv6: true
+```
+
+Set it in `config/user.yml` and re-run `playbooks/baseline.yml`; no reboot is
+needed in either direction. On the command line, use a YAML file
+(`-e @file.yml`) or the JSON form `-e '{"baseline_firewall_block_ipv6": true}'`,
+because `-e baseline_firewall_block_ipv6=true` produces the string `"true"`,
+which preflight rejects.
 
 ## Related variables
 
