@@ -14,7 +14,7 @@
 | Firewall input policy | `drop` |
 | Firewall forward policy | `drop` |
 | Firewall output policy | `accept` |
-| IPv6 firewall policy | Permitted unless `baseline_firewall_block_ipv6` is true |
+| IPv6 firewall policy | Blocked unless `baseline_firewall_block_ipv6` is false |
 | Unattended upgrades | Disabled; `apt_upgrade` applies them at the start of each run (see [`docs/maintenance.md`](maintenance.md)) |
 | Journal | Persistent, bounded |
 
@@ -94,14 +94,14 @@ fragments survive a re-apply. See
 
 ### IPv6 policy
 
-`baseline_firewall_block_ipv6` (default `false`) makes the host firewall drop
+`baseline_firewall_block_ipv6` (default `true`) makes the host firewall drop
 IPv6 at the input, forward and output hooks. The drop rule is the first rule of
 each of the three chains — ahead of loopback, conntrack, invalid-state,
 ICMP/ICMPv6, DHCP, the SSH allowlist, the port allowances and the input include
 — and it carries a `counter`, so drops are observable with
 `nft list chain inet baseline_filter input`. No `log` statement is added, so
-blocked IPv6 cannot fill the journal. The default preserves the existing
-dual-stack behaviour.
+blocked IPv6 cannot fill the journal. IPv6 is blocked by default; set the
+variable to `false` to keep the dual-stack firewall behaviour.
 
 This is a firewall policy, not a kernel change: the kernel IPv6 stack, the
 `net.ipv6.conf.*` sysctls, GRUB and the kernel command line are untouched, and
@@ -114,7 +114,10 @@ To open more ports, set `baseline_firewall_tcp_ports` or
 `baseline_firewall_ssh_ipv4_cidrs`.
 
 To disable the firewall entirely, set `baseline_firewall_enabled: false`; the
-role then only warns and leaves the target's ruleset alone.
+role then only warns and leaves the target's ruleset alone. Because
+`baseline_firewall_block_ipv6` defaults to `true`, that also requires setting
+`baseline_firewall_block_ipv6: false`: blocking cannot be enforced when the
+firewall is not configured, so preflight rejects the combination.
 
 ## Auditing
 

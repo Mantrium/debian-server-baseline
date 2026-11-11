@@ -19,7 +19,7 @@ timezone, and SSH key path, are defined in a Git-ignored
 |SSH|Key-only authentication, no root login, hardened effective configuration.|
 |Firewall|nftables default-deny inbound, preserving unrelated tables.|
 |Firewall extensions|Input and forward drop-in directories for layers on top.|
-|IPv6 firewall|Permitted by default; blocked with `baseline_firewall_block_ipv6`.|
+|IPv6 firewall|Blocked by default; set `baseline_firewall_block_ipv6: false` to permit it.|
 |Logging|Persistent journald storage and log rotation.|
 |Diagnostics|Read-only service, kernel and storage reports under `/var/log/server-baseline/`.|
 |Verification|An assertion role that fails the run when the baseline is not in place.|

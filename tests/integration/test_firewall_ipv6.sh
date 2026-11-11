@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 #
 # Assert the baseline_firewall_block_ipv6 switch.
+#
+# The role default blocks IPv6, so the test starts from the shipped default,
+# turns blocking off to exercise the IPv6 paths, turns it back on to prove the
+# drop, and turns it off again to prove the change is reversible without a
+# reboot.
 
 # shellcheck source=tests/integration/lib.sh
 . "$(dirname "$0")/lib.sh"
@@ -106,30 +111,32 @@ ping6() {
   return 0
 }
 
-# --- 9.3 disabled: the default preserves the existing behaviour -----------
-assert_not_blocked "default"
+# --- the shipped default blocks IPv6 -------------------------------------
+baseline_apply >/dev/null
+assert_blocked "default"
 assert_contains "the ICMPv6 rule is preserved" \
   "$(guest_root "nft -s list chain inet $table input")" "meta l4proto ipv6-icmp accept"
 assert_contains "the IPv6 SSH allowlist is preserved" \
   "$(guest_root "nft -s list chain inet $table input")" "ip6 saddr ::/0 tcp dport 22 accept"
 assert_contains "the IPv4 SSH allowlist is preserved" \
   "$(guest_root "nft -s list chain inet $table input")" "ip saddr 0.0.0.0/0 tcp dport 22 accept"
-
-# --- 9.6 IPv4 regression while blocking is disabled ----------------------
+assert_contains "the input IPv6 rule has a counter" \
+  "$(guest_root "nft list chain inet $table input")" "meta nfproto ipv6 counter packets"
+assert_eq "IPv6 loopback is blocked" "1" "$(guest_root 'ping -6 -c 1 -W 2 ::1 >/dev/null 2>&1; echo $?')"
 assert_eq "IPv4 loopback works" "0" "$(guest_root 'ping -4 -c 1 -W 2 127.0.0.1 >/dev/null 2>&1; echo $?')"
 
-# --- 9.4 packet-level filtering, blocking disabled ----------------------
+# --- disabled: IPv6 works again ------------------------------------------
+baseline_apply "-e @$allow_fixture" >/dev/null
+assert_not_blocked "disabled"
 probe_up
 assert_eq "input path: the namespace reaches the host over IPv6" "0" \
   "$(ping6 "ip netns exec $probe_ns" "$probe_host_addr")"
 assert_eq "output path: the host reaches the namespace over IPv6" "0" \
   "$(ping6 "" "$probe_ns_addr")"
 
-# --- 9.4 enabled ---------------------------------------------------------
+# --- enabled: packet-level filtering -------------------------------------
 baseline_apply "-e @$block_fixture" >/dev/null
 assert_blocked "enabled"
-assert_contains "the input IPv6 rule has a counter" \
-  "$(guest_root "nft list chain inet $table input")" "meta nfproto ipv6 counter packets"
 assert_contains "the ICMPv6 rule is still rendered" \
   "$(guest_root "nft -s list chain inet $table input")" "meta l4proto ipv6-icmp accept"
 assert_contains "the IPv6 SSH allowlist is still rendered" \
@@ -140,7 +147,6 @@ assert_eq "input path: the namespace no longer reaches the host" "1" \
   "$(ping6 "ip netns exec $probe_ns" "$probe_host_addr")"
 assert_eq "output path: the host no longer reaches the namespace" "1" \
   "$(ping6 "" "$probe_ns_addr")"
-assert_eq "IPv6 loopback is blocked" "1" "$(guest_root 'ping -6 -c 1 -W 2 ::1 >/dev/null 2>&1; echo $?')"
 counter_after="$(guest_root "nft list chain inet $table input" | sed -n 's/.*meta nfproto ipv6 counter packets \([0-9]*\).*/\1/p')"
 if [ -n "$counter_before" ] && [ -n "$counter_after" ] && [ "$counter_after" -gt "$counter_before" ]; then
   baseline_ok "the input IPv6 drop counter increased"
@@ -149,7 +155,7 @@ else
     "before: ${counter_before:-none}" "after:  ${counter_after:-none}"
 fi
 
-# --- 9.4 forward path ----------------------------------------------------
+# --- forward path --------------------------------------------------------
 router_up
 guest "printf '%s\n' 'ip6 saddr 2001:db8:1::/64 ip6 daddr 2001:db8:2::/64 accept' \
   | sudo -n tee $forward_fragment >/dev/null"
@@ -157,7 +163,7 @@ guest_root 'nft -f /etc/nftables.conf'
 assert_eq "forward path: the IPv6 drop precedes the forward fragment" "1" \
   "$(ping6 "ip netns exec $probe_ns" "$router_ns_addr")"
 
-# --- 9.6 IPv4 regression while blocking is enabled -----------------------
+# --- IPv4 regression while blocking is enabled ---------------------------
 assert_eq "IPv4 loopback still works" "0" "$(guest_root 'ping -4 -c 1 -W 2 127.0.0.1 >/dev/null 2>&1; echo $?')"
 ipv4_addrs="$(guest 'ip -4 addr show scope global | grep -c inet' || true)"
 assert_eq "the guest still has an IPv4 address" "yes" \
@@ -170,7 +176,7 @@ else
   baseline_fail "make verify succeeds while IPv6 is blocked"
 fi
 
-# --- 9.5 reversibility, no reboot ---------------------------------------
+# --- reversibility, no reboot --------------------------------------------
 baseline_apply "-e @$allow_fixture" >/dev/null
 assert_not_blocked "disabled again"
 assert_contains "the forward fragment rule survives the toggle" \
@@ -186,7 +192,7 @@ assert_eq "forward path: IPv6 works again" "0" \
 # it was, so the 9.7 snapshot comparison below is meaningful.
 guest_root "sysctl -q -w net.ipv6.conf.all.forwarding=${forwarding_before:-0}"
 
-# --- 9.7 kernel and Vagrant preservation --------------------------------
+# --- 9.7 kernel and Vagrant preservation ---------------------------------
 assert_eq "the kernel IPv6 sysctls are unchanged" "$sysctl_before" \
   "$(guest 'cat /proc/sys/net/ipv6/conf/all/disable_ipv6 /proc/sys/net/ipv6/conf/default/disable_ipv6 /proc/sys/net/ipv6/conf/all/forwarding')"
 assert_eq "the kernel command line is unchanged" "$cmdline_before" "$(guest 'cat /proc/cmdline')"
@@ -209,7 +215,7 @@ else
   baseline_fail "the Vagrantfile is unchanged"
 fi
 
-# --- configuration validation -------------------------------------------
+# --- configuration validation --------------------------------------------
 if invalid_out="$(ansible-playbook -i inventories/vagrant/hosts.yml \
     playbooks/baseline.yml -e "@$invalid_fixture" 2>&1)"; then
   baseline_fail "a non-boolean baseline_firewall_block_ipv6 is rejected"

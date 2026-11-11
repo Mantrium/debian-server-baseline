@@ -12,12 +12,12 @@ key path that belongs to a particular operator.
 |`admin_username`|The administrative account created on the target and added to `sudo`.|`admin`|
 |`server_timezone`|The system timezone, as a name valid under `/usr/share/zoneinfo`.|`Etc/UTC`|
 |`ssh_public_key_path`|Path **on the controller** to the public key installed for `admin_username`.|`/home/user/.ssh/id_ed25519.pub`|
-|`baseline_firewall_block_ipv6`|Optional. Block IPv6 at the host firewall; see [`docs/firewall-extensions.md`](firewall-extensions.md). Must be a YAML boolean. Defaults to `false`.|`false`|
+|`baseline_firewall_block_ipv6`|Optional. Block IPv6 at the host firewall; see [`docs/firewall-extensions.md`](firewall-extensions.md). Must be a YAML boolean. Defaults to `true`.|`true`|
 
 The first four variables are the only authoritative source for those values. No
 role default restates them. `baseline_firewall_block_ipv6` is optional: it may
 be absent from `config/user.yml`, in which case the `nftables` role default
-(`false`) applies.
+(`true`) applies.
 
 ## Copy workflow
 
@@ -70,24 +70,24 @@ It publishes two facts for the later roles:
 |`server_hostname` or `admin_username` malformed|Fails with the accepted pattern.|
 |`server_timezone` not present under `/usr/share/zoneinfo`|Fails naming the timezone.|
 |`baseline_firewall_block_ipv6` not a YAML boolean|Fails naming the variable, its type and the accepted forms.|
-|`baseline_firewall_block_ipv6: true` with `baseline_firewall_enabled: false`|Fails explaining that the firewall is not configured, so the blocking would not be enforced.|
+|`baseline_firewall_block_ipv6` true (the default) with `baseline_firewall_enabled: false`|Fails explaining that the firewall is not configured, so the blocking would not be enforced. Disabling the firewall therefore requires `baseline_firewall_block_ipv6: false` as well.|
 |Public key missing, empty, a directory, or not a recognised key type|Fails with the key path.|
 |Matching private key absent|Fails naming the private key path.|
 
 ## Firewall IPv6 blocking
 
 `baseline_firewall_block_ipv6` is the one optional user variable. It is a YAML
-boolean and defaults to `false`; see
+boolean and defaults to `true`; see
 [`docs/firewall-extensions.md`](firewall-extensions.md) for the full reference.
+
+```yaml
+# Block IPv6 at the host firewall. This is the role default.
+baseline_firewall_block_ipv6: true
+```
 
 ```yaml
 # Preserve the existing dual-stack firewall behaviour.
 baseline_firewall_block_ipv6: false
-```
-
-```yaml
-# Block IPv6 at the host firewall.
-baseline_firewall_block_ipv6: true
 ```
 
 Set it in `config/user.yml` and re-run `playbooks/baseline.yml`; no reboot is

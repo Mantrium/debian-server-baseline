@@ -183,7 +183,7 @@ inside its input and forward chains, so a layer on top adds rules by dropping
 
 |Phase|Owns|
 |---|---|
-|Phase 1 (this repository)|The baseline, the firewall table and policies, the extension points, the optional IPv6 blocking policy.|
+|Phase 1 (this repository)|The baseline, the firewall table and policies, the extension points, the IPv6 blocking policy (on by default).|
 |Phase 2 (the hosting platform)|Incus, OVN, OVN ACLs, Incus-specific firewall rules and hosting services.|
 
 Phase 2 consumes Phase 1 as a pinned, version-controlled dependency and never

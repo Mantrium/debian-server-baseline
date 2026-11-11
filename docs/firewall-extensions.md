@@ -46,8 +46,8 @@ to forward.
 ## 4. How a layer on top consumes them
 
 Phase 1 (this repository) creates the directories, the includes, the table, the
-policies and the optional IPv6 drop rules. Phase 2 creates and manages the
-fragments:
+policies and the IPv6 drop rules (on by default). Phase 2 creates and manages
+the fragments:
 
 ```text
 /etc/nftables.d/
@@ -78,43 +78,46 @@ determined by testing the final OVN topology and packet paths.
 
 |Variable|Default|Type|
 |---|---|---|
-|`baseline_firewall_block_ipv6`|`false`|YAML boolean|
+|`baseline_firewall_block_ipv6`|`true`|YAML boolean|
 
-When it is `true`, the host firewall drops IPv6 at the input, forward and output
-hooks. The rule is the first rule of each of the three chains, so it precedes
-loopback, conntrack, invalid-state, ICMP/ICMPv6, DHCP, the SSH allowlist, the
-port allowances and the input include. It carries a `counter`, so drops are
-observable with `nft list chain inet baseline_filter input`; no `log` statement
-is added, so blocked IPv6 cannot fill the journal.
+When it is `true` (the default), the host firewall drops IPv6 at the input,
+forward and output hooks. The rule is the first rule of each of the three
+chains, so it precedes loopback, conntrack, invalid-state, ICMP/ICMPv6, DHCP,
+the SSH allowlist, the port allowances and the input include. It carries a
+`counter`, so drops are observable with
+`nft list chain inet baseline_filter input`; no `log` statement is added, so
+blocked IPv6 cannot fill the journal.
 
 The value must be a YAML boolean. `preflight` rejects a string, because
 `-e baseline_firewall_block_ipv6=true` produces the string `"true"`, which would
 silently be truthy in one place and false in another.
 
-## 6. Enabling it
+## 6. The default: IPv6 is blocked
 
 ```yaml
-# Block IPv6 at the host firewall.
+# Block IPv6 at the host firewall. This is the role default.
 baseline_firewall_block_ipv6: true
 ```
 
-Set it in `config/user.yml` and re-run `playbooks/baseline.yml`. No reboot is
-needed: the table is recreated and reloaded by the role.
+The role default is `true`, so a host that does not set the variable at all
+blocks IPv6. Set it explicitly in `config/user.yml` to make the intent visible,
+and re-run `playbooks/baseline.yml`. No reboot is needed: the table is recreated
+and reloaded by the role.
 
-## 7. Restoring normal behaviour
+## 7. Restoring dual-stack behaviour
 
 ```yaml
 # Preserve the existing dual-stack firewall behaviour.
 baseline_firewall_block_ipv6: false
 ```
 
-Set it back to `false` and re-run `playbooks/baseline.yml`. The drop rules are
+Set it to `false` and re-run `playbooks/baseline.yml`. The drop rules are
 removed with the rest of the table, again without a reboot.
 
 ## 8. Firewall blocking versus kernel-level disablement
 
 This is a firewall policy, not a kernel change. With
-`baseline_firewall_block_ipv6: true`:
+`baseline_firewall_block_ipv6: true` (the default):
 
 - IPv6 is dropped at the input, forward and output hooks of the host firewall;
 - provider-assigned IPv6 addresses are **not** removed, and `ip -6 addr show`
@@ -148,4 +151,4 @@ the host firewall does not cover the logical datapath.
 
 The output chain drops IPv6 before any other rule, so `::1` is blocked as well.
 Applications on the host must use `127.0.0.1` or an explicitly configured IPv4
-address rather than `::1` while blocking is enabled.
+address rather than `::1` while blocking is enabled, which is the default.

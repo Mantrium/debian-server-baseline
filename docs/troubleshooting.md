@@ -185,3 +185,12 @@ the role does not configure the firewall at all, so the IPv6 drop rules would
 never be installed and the operator would believe IPv6 was blocked when it was
 not. Either set `baseline_firewall_enabled: true`, or set
 `baseline_firewall_block_ipv6: false`.
+
+`baseline_firewall_block_ipv6` defaults to `true`, so setting
+`baseline_firewall_enabled: false` on its own triggers this failure. Disabling
+the firewall therefore needs both keys:
+
+```yaml
+baseline_firewall_enabled: false
+baseline_firewall_block_ipv6: false
+```
