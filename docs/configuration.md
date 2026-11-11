@@ -94,7 +94,9 @@ Set it in `config/user.yml` and re-run `playbooks/baseline.yml`; no reboot is
 needed in either direction. On the command line, use a YAML file
 (`-e @file.yml`) or the JSON form `-e '{"baseline_firewall_block_ipv6": true}'`,
 because `-e baseline_firewall_block_ipv6=true` produces the string `"true"`,
-which preflight rejects.
+which preflight rejects. Against the Vagrant VM,
+`make baseline EXTRA_VARS='-e @file.yml'` sources the inventory environment for
+you.
 
 ## Related variables
 

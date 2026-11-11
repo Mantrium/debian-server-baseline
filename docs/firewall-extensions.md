@@ -88,9 +88,10 @@ the SSH allowlist, the port allowances and the input include. It carries a
 `nft list chain inet baseline_filter input`; no `log` statement is added, so
 blocked IPv6 cannot fill the journal.
 
-The value must be a YAML boolean. `preflight` rejects a string, because
-`-e baseline_firewall_block_ipv6=true` produces the string `"true"`, which would
-silently be truthy in one place and false in another.
+The value must be a YAML boolean. `preflight` rejects a string:
+`-e baseline_firewall_block_ipv6=true` produces the string `"true"`, which the
+`| bool` filter would accept as true while the type check rejects it, so the
+same value would mean different things in different places.
 
 ## 6. The default: IPv6 is blocked
 

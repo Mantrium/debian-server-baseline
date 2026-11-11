@@ -169,13 +169,19 @@ baseline_firewall_block_ipv6: true
 ```
 
 `-e baseline_firewall_block_ipv6=true` produces the *string* `"true"`, which
-preflight rejects. Use a YAML file or the JSON form instead:
+preflight rejects. Use a YAML file or the JSON form instead. Against the Vagrant
+VM, `make baseline` sources the inventory environment for you:
 
 ```bash
+make baseline EXTRA_VARS='-e @tests/fixtures/firewall-block-ipv6.yml'
+```
+
+A raw `ansible-playbook` run needs that environment first:
+
+```bash
+set -a; . .vagrant/vagrant-env.sh; set +a
 ansible-playbook -i inventories/vagrant/hosts.yml playbooks/baseline.yml \
   -e '{"baseline_firewall_block_ipv6": true}'
-ansible-playbook -i inventories/vagrant/hosts.yml playbooks/baseline.yml \
-  -e @tests/fixtures/firewall-block-ipv6.yml
 ```
 
 ## `baseline_firewall_block_ipv6 is true but baseline_firewall_enabled is false`

@@ -76,6 +76,10 @@ state, and accepts:
 - the configured SSH port, from the CIDRs in
   `baseline_firewall_ssh_ipv4_cidrs` and `baseline_firewall_ssh_ipv6_cidrs`.
 
+With IPv6 blocked (the default), the ICMPv6 and IPv6 SSH rules are still
+rendered but unreachable: the IPv6 drop rule precedes them. See the IPv6 policy
+below.
+
 The input and forward chains end with an include of an extension directory:
 
 |Chain|Include|Placement|
