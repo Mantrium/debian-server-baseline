@@ -23,10 +23,6 @@ The repository has three jobs:
 Ansible always runs on the controller and connects to the target over SSH.
 Nothing in this repository runs on the target outside of an Ansible task.
 
-Vagrant is a development convenience only. Production deployment is a direct
-`ansible-playbook` run against the production inventory; Vagrant is never
-required there. See [`docs/production.md`](production.md).
-
 ## 3. Configuration ownership
 
 There is exactly one authoritative source for each value.
@@ -130,7 +126,7 @@ mistake cannot lock the operator out of an unhardened daemon.
 | `/etc/apt/apt.conf.d/20auto-upgrades` | `apt_maintenance` |
 | `/etc/ssh/sshd_config.d/00-server-baseline.conf` | `ssh` |
 | `/etc/nftables.conf`, `/etc/nftables.d/10-server-baseline.nft` | `nftables` |
-| `/etc/nftables.d/input/`, `/etc/nftables.d/forward/` | `nftables` creates them; the fragments inside belong to the layer on top |
+| `/etc/nftables.d/input/`, `/etc/nftables.d/forward/` | `nftables` |
 | `/etc/systemd/system/nftables.service.d/10-server-baseline.conf` | `nftables` |
 | `/etc/systemd/journald.conf.d/10-server-baseline.conf` | `journald` |
 | `/var/log/journal` | `journald` |
@@ -161,16 +157,6 @@ Reports are regenerated on every run. They are the intended input for a human
 reviewing a server, and for the integration tests.
 
 ## 9. Extending the baseline
-
-This repository stops at a hardened, observable, generic Debian 13 host. It
-does not install or configure any hosting workload: web servers, databases,
-container runtimes, TLS material and application deployment all belong to
-whatever is layered on top.
-
-Anything layered on top should add roles rather than modify baseline roles, and
-should depend only on values from `config/user.yml` or values produced by a
-baseline role. Keeping the boundary here means the baseline stays reusable by
-anyone, and a layered repository can evolve without re-testing it.
 
 The firewall is the one place where the baseline offers an extension point
 instead of only a boundary. The `nftables` role creates

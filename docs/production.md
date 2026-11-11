@@ -128,9 +128,6 @@ ssh -i <private key> <admin_username>@<address>
 | Logging | Persistent journald storage and log rotation. |
 | Reports | `/var/log/server-baseline/`: `service-audit.txt`, `kernel-status.txt`, `storage.txt`, `maintenance-report.txt`, `security-audit.txt`. |
 
-The baseline does not remove cloud-init or provider agents, and it does not
-touch the provider's firewall.
-
 ## 6. Ongoing operation
 
 ```bash

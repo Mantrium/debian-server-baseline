@@ -128,8 +128,7 @@ make vagrant-up
 make vagrant-test
 ```
 
-See [`docs/vagrant.md`](vagrant.md). Production deployment is a direct
-`ansible-playbook` run; Vagrant is never required there.
+See [`docs/vagrant.md`](vagrant.md).
 
 ## Uninstalling
 

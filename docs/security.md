@@ -107,11 +107,8 @@ ICMP/ICMPv6, DHCP, the SSH allowlist, the port allowances and the input include
 blocked IPv6 cannot fill the journal. IPv6 is blocked by default; set the
 variable to `false` to keep the dual-stack firewall behaviour.
 
-This is a firewall policy, not a kernel change: the kernel IPv6 stack, the
-`net.ipv6.conf.*` sysctls, GRUB and the kernel command line are untouched, and
-provider-assigned IPv6 addresses stay on the interfaces. IPv6 loopback is
-blocked too, so host applications must use `127.0.0.1` rather than `::1` while
-blocking is enabled.
+IPv6 loopback is blocked too, so host applications must use `127.0.0.1` rather
+than `::1` while blocking is enabled.
 
 To open more ports, set `baseline_firewall_tcp_ports` or
 `baseline_firewall_udp_ports`. To restrict SSH to a management network, narrow
@@ -142,10 +139,5 @@ and installed kernels, pending kernel upgrades and pending service restarts.
 
 ## What the baseline does not do
 
-- It does not configure fail2ban, an intrusion detection system or a log
-  shipper. Those belong to a hosting platform layered on top of the baseline.
-- It does not manage TLS material or application secrets.
 - It does not apply upgrades unattended. `apt_upgrade` applies them at the start
   of each `baseline.yml` run, which is a deliberate, observable moment.
-- It does not disable the `vagrant` account. That account exists only in the
-  Vagrant environment and is not created on a production server.

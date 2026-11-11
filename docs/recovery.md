@@ -2,13 +2,8 @@
 
 ## Before you need this
 
-Two things make recovery possible:
-
-- The baseline never touches the `vagrant` account in the Vagrant environment,
-  and never touches `root` anywhere. Its own SSH hardening only affects the
-  account named by `admin_username`.
-- The firewall accepts the configured SSH port, so a mistake in another rule
-  cannot lock you out of SSH.
+The firewall accepts the configured SSH port, so a mistake in another rule
+cannot lock you out of SSH.
 
 ## Lost SSH access
 

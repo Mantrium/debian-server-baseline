@@ -1,9 +1,5 @@
 # Vagrant environment
 
-Vagrant exists only for local development and integration testing. Production
-never uses it; see [`docs/production.md`](production.md) for the production
-path.
-
 ## Host prerequisites
 
 The development host is assumed to be Arch Linux (the maintainers use Omarchy).

@@ -56,9 +56,8 @@ make vagrant-test
 
 ## Production
 
-Production is a direct `ansible-playbook` run against a Debian 13 server.
-Vagrant is never involved. The full walkthrough is
-[`docs/production.md`](docs/production.md); in short:
+Production is a direct `ansible-playbook` run against a Debian 13 server. The
+full walkthrough is [`docs/production.md`](docs/production.md); in short:
 
 ```bash
 # On the controller, once
