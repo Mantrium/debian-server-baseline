@@ -13,6 +13,15 @@ baseline_firewall_ssh_ipv6_cidrs:
 baseline_firewall_tcp_ports: []
 baseline_firewall_udp_ports: []
 
+# Extension points, for services layered on top of the baseline.
+#
+# Each directory is included from inside the matching chain of the baseline
+# table, so a layer on top can add rules without editing this role. The
+# fragments contain rule statements only: no table or chain declarations.
+# See docs/firewall-extensions.md.
+baseline_firewall_input_dropin_dir: /etc/nftables.d/input
+baseline_firewall_forward_dropin_dir: /etc/nftables.d/forward
+
 baseline_firewall_default_input_policy: drop
 baseline_firewall_default_output_policy: accept
 baseline_firewall_forward_policy: drop

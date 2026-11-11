@@ -23,6 +23,19 @@
         group: root
         mode: "0755"
 
+    - name: Create the firewall extension directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop:
+        - "{{ baseline_firewall_input_dropin_dir }}"
+        - "{{ baseline_firewall_forward_dropin_dir }}"
+      loop_control:
+        label: "{{ item }}"
+
     - name: Configure the nftables entry point
       ansible.builtin.template:
         src: nftables.conf.j2
@@ -38,6 +51,7 @@
         owner: root
         group: root
         mode: "0644"
+      register: baseline_firewall_table_file
 
     - name: Create the nftables unit drop-in directory
       ansible.builtin.file:
@@ -68,6 +82,17 @@
         enabled: true
         state: started
 
+    # Starting the unit only loads the ruleset when the unit was not already
+    # running, so a changed table has to be loaded explicitly. The file is
+    # loaded as one transaction, so the table is never briefly absent, and the
+    # task is skipped when the file did not change, which keeps a second run
+    # idempotent.
+    - name: Load the baseline firewall table
+      ansible.builtin.command:
+        cmd: nft -f {{ baseline_firewall_dropin }}
+      when: baseline_firewall_table_file is changed
+      changed_when: true
+
     - name: Read the baseline firewall table
       ansible.builtin.command:
         cmd: nft list table inet {{ baseline_firewall_table }}
@@ -79,3 +104,23 @@
         that:
           - "'policy drop' in baseline_firewall_table_state.stdout"
         fail_msg: "The baseline firewall table is not active."
+
+    - name: Read the rendered baseline firewall table
+      ansible.builtin.command:
+        cmd: cat {{ baseline_firewall_dropin }}
+      register: baseline_firewall_rendered
+      changed_when: false
+
+    - name: Assert the extension points are rendered
+      ansible.builtin.assert:
+        that:
+          - >-
+            ('include "' ~ baseline_firewall_input_dropin_dir ~ '/*.nft"')
+            in baseline_firewall_rendered.stdout
+          - >-
+            ('include "' ~ baseline_firewall_forward_dropin_dir ~ '/*.nft"')
+            in baseline_firewall_rendered.stdout
+        fail_msg: >-
+          The rendered baseline table does not include the firewall extension
+          directories.
+        success_msg: "Firewall extension points: rendered"
