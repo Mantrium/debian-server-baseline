@@ -1,0 +1,8 @@
+---
+# Extra variables for the firewall integration tests: block IPv6 at the host
+# firewall.
+#
+# A YAML file is used rather than `-e baseline_firewall_block_ipv6=true`,
+# because the key=value form produces the string "true", which preflight
+# rejects.
+baseline_firewall_block_ipv6: true

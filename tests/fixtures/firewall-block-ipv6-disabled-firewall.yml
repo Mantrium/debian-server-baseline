@@ -1,0 +1,5 @@
+---
+# Extra variables for the firewall integration tests: a contradictory security
+# configuration. preflight must reject it.
+baseline_firewall_block_ipv6: true
+baseline_firewall_enabled: false

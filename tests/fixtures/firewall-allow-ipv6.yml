@@ -1,0 +1,4 @@
+---
+# Extra variables for the firewall integration tests: preserve the existing
+# dual-stack firewall behaviour.
+baseline_firewall_block_ipv6: false

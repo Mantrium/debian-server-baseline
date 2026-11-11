@@ -1,0 +1,4 @@
+---
+# Extra variables for the firewall integration tests: a value that is not a
+# YAML boolean. preflight must reject it.
+baseline_firewall_block_ipv6: "true"
